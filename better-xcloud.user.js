@@ -1,15 +1,15 @@
 // ==UserScript==
-// @name         Better xCloud
+// @name         Better xCloud MOD
 // @namespace    https://github.com/redphx
 // @version      3.0.1
 // @description  Improve Xbox Cloud Gaming (xCloud) experience
-// @author       redphx
+// @author       redphx MOD by: PotatoPTT
 // @license      MIT
 // @match        https://www.xbox.com/*/play*
 // @run-at       document-start
 // @grant        none
 // @updateURL    https://raw.githubusercontent.com/redphx/better-xcloud/main/better-xcloud.meta.js
-// @downloadURL  https://github.com/redphx/better-xcloud/releases/latest/download/better-xcloud.user.js
+// @downloadURL  https://raw.githubusercontent.com/PotatoPTT/better-xcloud/MOD/better-xcloud.user.js
 // ==/UserScript==
 'use strict';
 
@@ -8780,6 +8780,10 @@ function interceptHttpRequests() {
 
         if (url.endsWith('/configuration') && url.includes('/sessions/cloud/') && request.method === 'GET') {
             PREF_UI_LOADING_SCREEN_GAME_ART && LoadingScreen.hide();
+
+            new Notification('Game is Ready', { //TODO make this strings with localization
+                body: 'Queue finished.'
+              });
 
             const promise = orgFetch(...arg);
 
