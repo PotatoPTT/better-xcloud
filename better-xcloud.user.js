@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Better xCloud MOD
 // @namespace    https://github.com/redphx
-// @version      1.18.1
+// @version      2.1.2
 // @description  Improve Xbox Cloud Gaming (xCloud) experience
 // @author       redphx MOD by: PotatoPTT
 // @license      MIT
@@ -13,8 +13,12 @@
 // ==/UserScript==
 'use strict';
 
-const SCRIPT_VERSION = '1.18.1';
+const SCRIPT_VERSION = '2.1.2';
 const SCRIPT_HOME = 'https://github.com/redphx/better-xcloud';
+
+const ENABLE_MKB = false;
+const ENABLE_XCLOUD_LOGGER = false;
+const ENABLE_PRELOAD_BX_UI = false;
 
 console.log(`[Better xCloud] readyState: ${document.readyState}`);
 
@@ -51,7 +55,7 @@ function createElement(elmName, props = {}) {
         const argType = typeof arg;
 
         if (argType === 'string' || argType === 'number') {
-            $elm.textContent = arg;
+            $elm.appendChild(document.createTextNode(arg));
         } else if (arg) {
             $elm.appendChild(arg);
         }
@@ -67,11 +71,15 @@ const Translations = {
             'de-DE',
             'en-US',
             'es-ES',
+            'fr-FR',
+            'it-IT',
+            'ja-JP',
             'ko-KR',
             'pl-PL',
             'pt-BR',
             'ru-RU',
             'tr-TR',
+            'uk-UA',
             'vi-VN',
             'zh-CN',
         ];
@@ -97,11 +105,15 @@ const Translations = {
         "de-DE": "Erweitert",
         "en-US": "Advanced",
         "es-ES": "Avanzado",
+        "fr-FR": "Options avancées",
+        "it-IT": "Avanzate",
+        "ja-JP": "高度な設定",
         "ko-KR": "고급",
         "pl-PL": "Zaawansowane",
         "pt-BR": "Avançado",
         "ru-RU": "Продвинутые",
         "tr-TR": "Gelişmiş ayarlar",
+        "uk-UA": "Розширені",
         "vi-VN": "Nâng cao",
         "zh-CN": "高级选项",
     },
@@ -109,11 +121,15 @@ const Translations = {
         "de-DE": "Audio",
         "en-US": "Audio",
         "es-ES": "Audio",
+        "fr-FR": "Audio",
+        "it-IT": "Audio",
+        "ja-JP": "音声",
         "ko-KR": "오디오",
         "pl-PL": "Dźwięk",
         "pt-BR": "Áudio",
         "ru-RU": "Звук",
         "tr-TR": "Ses",
+        "uk-UA": "Звук",
         "vi-VN": "Âm thanh",
         "zh-CN": "音频",
     },
@@ -121,11 +137,15 @@ const Translations = {
         "de-DE": "Automatisch",
         "en-US": "Auto",
         "es-ES": "Auto",
+        "fr-FR": "Auto",
+        "it-IT": "Automatico",
+        "ja-JP": "自動",
         "ko-KR": "자동",
         "pl-PL": "Automatyczne",
         "pt-BR": "Automático",
         "ru-RU": "Автоматически",
         "tr-TR": "Otomatik",
+        "uk-UA": "Автоматично",
         "vi-VN": "Tự động",
         "zh-CN": "自动",
     },
@@ -133,11 +153,15 @@ const Translations = {
         "de-DE": "Audio",
         "en-US": "Audio",
         "es-ES": "Audio",
+        "fr-FR": "Audio",
+        "it-IT": "Audio",
+        "ja-JP": "音声",
         "ko-KR": "오디오",
         "pl-PL": "Dźwięk",
         "pt-BR": "Áudio",
         "ru-RU": "Звук",
         "tr-TR": "Ses",
+        "uk-UA": "Звук",
         "vi-VN": "Tiếng",
         "zh-CN": "音频",
     },
@@ -145,11 +169,15 @@ const Translations = {
         "de-DE": "Batterie",
         "en-US": "Battery",
         "es-ES": "Batería",
+        "fr-FR": "Batterie",
+        "it-IT": "Batteria",
+        "ja-JP": "バッテリー",
         "ko-KR": "배터리",
         "pl-PL": "Bateria",
         "pt-BR": "Bateria",
         "ru-RU": "Батарея",
         "tr-TR": "Pil",
+        "uk-UA": "Батарея",
         "vi-VN": "Pin",
         "zh-CN": "电量",
     },
@@ -157,11 +185,15 @@ const Translations = {
         "de-DE": "Empfangen",
         "en-US": "In",
         "es-ES": "Entrada",
+        "fr-FR": "Dans",
+        "it-IT": "DL",
+        "ja-JP": "IN",
         "ko-KR": "다운로드",
         "pl-PL": "Pobieranie",
         "pt-BR": "Recebidos",
         "ru-RU": "Входящие",
         "tr-TR": "Gelen",
+        "uk-UA": "Завантаження",
         "vi-VN": "Nhận",
         "zh-CN": "下载",
     },
@@ -169,11 +201,15 @@ const Translations = {
         "de-DE": "Gesendet",
         "en-US": "Out",
         "es-ES": "Salida",
+        "fr-FR": "Sorti",
+        "it-IT": "UP",
+        "ja-JP": "OUT",
         "ko-KR": "업로드",
         "pl-PL": "Wysyłanie",
         "pt-BR": "Enviados",
         "ru-RU": "Исходящие",
         "tr-TR": "Giden",
+        "uk-UA": "Вивантаження",
         "vi-VN": "Gởi",
         "zh-CN": "上传",
     },
@@ -181,11 +217,15 @@ const Translations = {
         "de-DE": "Spielzeit",
         "en-US": "Playtime",
         "es-ES": "Tiempo jugado",
+        "fr-FR": "Temps de jeu",
+        "it-IT": "In gioco da",
+        "ja-JP": "プレイ時間",
         "ko-KR": "플레이한 시간",
         "pl-PL": "Czas gry",
         "pt-BR": "Tempo de jogo",
         "ru-RU": "Время в игре",
         "tr-TR": "Oynanış süresi",
+        "uk-UA": "Час гри",
         "vi-VN": "Giờ chơi",
         "zh-CN": "游玩时间",
     },
@@ -193,11 +233,15 @@ const Translations = {
         "de-DE": "Server",
         "en-US": "Server",
         "es-ES": "Servidor",
+        "fr-FR": "Serveur",
+        "it-IT": "Server",
+        "ja-JP": "サーバー",
         "ko-KR": "서버",
         "pl-PL": "Serwer",
         "pt-BR": "Servidor",
         "ru-RU": "Сервер",
         "tr-TR": "Sunucu",
+        "uk-UA": "Сервер",
         "vi-VN": "Máy chủ",
         "zh-CN": "服务器",
     },
@@ -205,11 +249,15 @@ const Translations = {
         "de-DE": "Video",
         "en-US": "Video",
         "es-ES": "Video",
+        "fr-FR": "Vidéo",
+        "it-IT": "Video",
+        "ja-JP": "映像",
         "ko-KR": "비디오",
         "pl-PL": "Obraz",
         "pt-BR": "Vídeo",
         "ru-RU": "Видео",
         "tr-TR": "Görüntü",
+        "uk-UA": "Відео",
         "vi-VN": "Hình",
         "zh-CN": "视频",
     },
@@ -217,11 +265,15 @@ const Translations = {
         "de-DE": "Unten links",
         "en-US": "Bottom-left",
         "es-ES": "Inferior izquierdo",
+        "fr-FR": "En bas à gauche",
+        "it-IT": "In basso a sinistra",
+        "ja-JP": "左下",
         "ko-KR": "좌측 하단",
         "pl-PL": "Lewy dolny róg",
         "pt-BR": "Inferior Esquerdo",
         "ru-RU": "Левый нижний угол",
         "tr-TR": "Sol alt",
+        "uk-UA": "Внизу ліворуч",
         "vi-VN": "Phía dưới bên trái",
         "zh-CN": "左下角",
     },
@@ -229,11 +281,15 @@ const Translations = {
         "de-DE": "Unten rechts",
         "en-US": "Bottom-right",
         "es-ES": "Inferior derecha",
+        "fr-FR": "Bas-droit",
+        "it-IT": "In basso a destra",
+        "ja-JP": "右下",
         "ko-KR": "우측 하단",
         "pl-PL": "Prawy dolny róg",
         "pt-BR": "Inferior-direito",
         "ru-RU": "Правый нижний угол",
         "tr-TR": "Sağ alt",
+        "uk-UA": "Внизу праворуч",
         "vi-VN": "Phía dưới bên phải",
         "zh-CN": "右下角",
     },
@@ -241,35 +297,73 @@ const Translations = {
         "de-DE": "Helligkeit",
         "en-US": "Brightness",
         "es-ES": "Brillo",
+        "fr-FR": "Luminosité",
+        "it-IT": "Luminosità",
+        "ja-JP": "輝度",
         "ko-KR": "밝기",
         "pl-PL": "Jasność",
         "pt-BR": "Brilho",
         "ru-RU": "Яркость",
         "tr-TR": "Aydınlık",
-        "vi-VN": "Độ sáng",
+        "uk-UA": "Яскравість",
+        "vi-VN": "Độ sáng",
         "zh-CN": "亮度",
     },
     "browser-unsupported-feature": {
         "de-DE": "Dein Browser unterstützt diese Funktion nicht",
         "en-US": "Your browser doesn't support this feature",
         "es-ES": "Su navegador no soporta esta característica",
+        "fr-FR": "Votre navigateur ne supporte pas cette fonctionnalité",
+        "it-IT": "Il tuo browser non supporta questa funzione",
+        "ja-JP": "お使いのブラウザはこの機能をサポートしていません。",
         "ko-KR": "브라우저에서 이 기능을 지원하지 않습니다.",
         "pl-PL": "Twoja przeglądarka nie obsługuje tej funkcji",
         "pt-BR": "Seu navegador não suporta este recurso",
         "ru-RU": "Ваш браузер не поддерживает эту функцию",
         "tr-TR": "Web tarayıcınız bu özelliği desteklemiyor",
+        "uk-UA": "Ваш браузер не підтримує цю функцію",
         "vi-VN": "Trình duyệt không hỗ trợ tính năng này",
         "zh-CN": "您的浏览器不支持此功能",
+    },
+    "can-stream-xbox-360-games": {
+        "de-DE": "Kann Xbox 360 Spiele streamen",
+        "en-US": "Can stream Xbox 360 games",
+        "es-ES": "Puede transmitir juegos de Xbox 360",
+        "it-IT": "Puoi riprodurre i giochi Xbox 360",
+        "ja-JP": "Xbox 360ゲームのストリーミング可能",
+        "pl-PL": "Można strumieniować gry Xbox 360",
+        "pt-BR": "Pode transmitir jogos de Xbox 360",
+        "ru-RU": "Позволяет транслировать Xbox 360 игры",
+        "tr-TR": "Xbox 360 oyunlarına erişim sağlanabilir",
+        "uk-UA": "Дозволяє транслювати ігри Xbox 360",
+        "vi-VN": "Có thể stream các game Xbox 360",
+    },
+    "cant-stream-xbox-360-games": {
+        "de-DE": "Kann Xbox 360 Spiele nicht streamen",
+        "en-US": "Can't stream Xbox 360 games",
+        "es-ES": "No puede transmitir juegos de Xbox 360",
+        "it-IT": "Impossibile riprodurre i giochi Xbox 360",
+        "ja-JP": "Xbox 360ゲームのストリーミング不可",
+        "pl-PL": "Nie można strumieniować gier Xbox 360",
+        "pt-BR": "Não pode transmitir jogos de Xbox 360",
+        "ru-RU": "Невозможно транслировать игры Xbox 360",
+        "tr-TR": "Xbox 360 oyunlarına erişim sağlanamaz",
+        "uk-UA": "Не дозволяє транслювати ігри Xbox 360",
+        "vi-VN": "Không thể stream các game Xbox 360",
     },
     "clarity": {
         "de-DE": "Klarheit",
         "en-US": "Clarity",
         "es-ES": "Claridad",
+        "fr-FR": "Clarté",
+        "it-IT": "Nitidezza",
+        "ja-JP": "明瞭度（クラリティ）",
         "ko-KR": "선명도",
         "pl-PL": "Ostrość",
         "pt-BR": "Clareza",
         "ru-RU": "Чёткость",
         "tr-TR": "Netlik",
+        "uk-UA": "Чіткість",
         "vi-VN": "Độ nét",
         "zh-CN": "清晰度",
     },
@@ -277,11 +371,15 @@ const Translations = {
         "de-DE": "Diese Einstellungen funktionieren nicht, wenn \"Clarity Boost\" aktiviert ist",
         "en-US": "These settings don't work when the Clarity Boost mode is ON",
         "es-ES": "Estos ajustes no funcionan cuando el modo Clarity Boost está activado",
+        "fr-FR": "Ces paramètres ne fonctionnent pas lorsque le mode Clarity Boost est activé",
+        "it-IT": "Queste impostazioni non funzionano quando la modalità Clarity Boost è attiva",
+        "ja-JP": "クラリティブーストが有効の場合、映像設定は無効化されます。",
         "ko-KR": "이 설정들은 선명도 향상 기능이 켜져 있을 때는 동작하지 않습니다.",
         "pl-PL": "Te ustawienia nie będą działać, gdy tryb \"Clarity Boost\" jest włączony",
-        "pt-BR": "Estas configurações não funcionam quando o modo de \"Clarity Boost\" está ATIVADO",
+        "pt-BR": "Estas configurações não funcionam quando o modo \"Clarity Boost\" está ATIVADO",
         "ru-RU": "Эти настройки не работают, когда включен режим Clarity Boost",
         "tr-TR": "Netliği Artırma modu açıkken bu ayarlar ETKİSİZDİR",
+        "uk-UA": "Ці налаштування не працюють, коли увімкнено режим \"Clarity Boost\"",
         "vi-VN": "Các tùy chỉnh này không hoạt động khi chế độ Clarity Boost đang được bật",
         "zh-CN": "这些设置在 Clarity Boost 清晰度增强 开启时不可用",
     },
@@ -289,11 +387,15 @@ const Translations = {
         "de-DE": "Schließen",
         "en-US": "Close",
         "es-ES": "Cerrar",
+        "fr-FR": "Fermer",
+        "it-IT": "Chiudi",
+        "ja-JP": "閉じる",
         "ko-KR": "닫기",
         "pl-PL": "Zamknij",
         "pt-BR": "Fechar",
         "ru-RU": "Закрыть",
         "tr-TR": "Kapat",
+        "uk-UA": "Закрити",
         "vi-VN": "Đóng",
         "zh-CN": "关闭",
     },
@@ -301,11 +403,15 @@ const Translations = {
         "de-DE": "Zustandsabhängige Textfarbe",
         "en-US": "Conditional formatting text color",
         "es-ES": "Color condicional de formato de texto",
+        "fr-FR": "Couleur du texte de mise en forme conditionnelle",
+        "it-IT": "Colore testo formattazione condizionale",
+        "ja-JP": "状態に応じた文字色で表示",
         "ko-KR": "통계에 따라 글자 색 지정",
         "pl-PL": "Kolor tekstu zależny od wartości",
-        "pt-BR": "Cor do texto do formato condicional",
+        "pt-BR": "Cor do texto de formatação condicional",
         "ru-RU": "Цвет текста в зависимости от условий",
         "tr-TR": "Metin renginin koşullu biçimlendirilmesi",
+        "uk-UA": "Колір тексту в залежності від умов",
         "vi-VN": "Thay đổi màu chữ tùy theo giá trị",
         "zh-CN": "更改文本颜色",
     },
@@ -313,35 +419,84 @@ const Translations = {
         "de-DE": "Möchtest Du den Stream aktualisieren?",
         "en-US": "Do you want to refresh the stream?",
         "es-ES": "¿Quieres actualizar el stream?\n",
+        "fr-FR": "Voulez-vous actualiser le stream ?",
+        "it-IT": "Vuoi aggiornare lo stream?",
+        "ja-JP": "ストリーミングをリフレッシュしますか？",
         "ko-KR": "스트리밍을 재시작할까요?",
         "pl-PL": "Czy chcesz odświeżyć transmisję?",
-        "pt-BR": "Você deseja atualizar o stream?",
+        "pt-BR": "Você deseja atualizar a transmissão?",
         "ru-RU": "Вы хотите перезапустить поток?",
         "tr-TR": "Yayını yeniden başlatmak istiyor musunuz?",
+        "uk-UA": "Бажаєте оновити трансляцію?",
         "vi-VN": "Bạn có muốn kết nối lại stream không?",
         "zh-CN": "您想要刷新吗？",
+    },
+    "console-connect": {
+        "de-DE": "Verbinden",
+        "en-US": "Connect",
+        "es-ES": "Conectar",
+        "it-IT": "Connetti",
+        "ja-JP": "本体に接続",
+        "pl-PL": "Połącz",
+        "pt-BR": "Conectar",
+        "ru-RU": "Подключиться",
+        "tr-TR": "Bağlan",
+        "uk-UA": "Під’єднатися",
+        "vi-VN": "Kết nối",
+        "zh-CN": "连接",
     },
     "contrast": {
         "de-DE": "Kontrast",
         "en-US": "Contrast",
         "es-ES": "Contraste",
+        "fr-FR": "Contraste",
+        "it-IT": "Contrasto",
+        "ja-JP": "コントラスト",
         "ko-KR": "대비",
         "pl-PL": "Kontrast",
         "pt-BR": "Contraste",
         "ru-RU": "Контрастность",
         "tr-TR": "Karşıtlık",
+        "uk-UA": "Контрастність",
         "vi-VN": "Độ tương phản",
         "zh-CN": "对比度",
+    },
+    "controller": {
+        "de-DE": "Controller",
+        "en-US": "Controller",
+        "es-ES": "Joystick",
+        "it-IT": "Controller",
+        "ja-JP": "コントローラー",
+        "pl-PL": "Kontroler",
+        "pt-BR": "Controle",
+        "ru-RU": "Контроллер",
+        "tr-TR": "Oyun Kumandası",
+        "uk-UA": "Контролер",
+        "vi-VN": "Bộ điều khiển",
+        "zh-CN": "手柄",
+    },
+    "controller-vibration": {
+        "de-DE": "Vibration des Controllers",
+        "en-US": "Controller vibration",
+        "ja-JP": "コントローラーの振動",
+        "pt-BR": "Vibração do controle",
+        "ru-RU": "Вибрация контроллера",
+        "tr-TR": "Oyun kumandası titreşimi",
+        "vi-VN": "Rung bộ điều khiển",
     },
     "custom": {
         "de-DE": "Benutzerdefiniert",
         "en-US": "Custom",
         "es-ES": "Personalizado",
+        "fr-FR": "Personnalisée",
+        "it-IT": "Personalizzato",
+        "ja-JP": "カスタム",
         "ko-KR": "사용자 지정",
         "pl-PL": "Niestandardowe",
         "pt-BR": "Customizado",
         "ru-RU": "Вручную",
         "tr-TR": "Özel",
+        "uk-UA": "Користувацькі",
         "vi-VN": "Tùy chỉnh",
         "zh-CN": "自定义",
     },
@@ -349,11 +504,15 @@ const Translations = {
         "de-DE": "Standard",
         "en-US": "Default",
         "es-ES": "Por defecto",
+        "fr-FR": "Par défaut",
+        "it-IT": "Predefinito",
+        "ja-JP": "デフォルト",
         "ko-KR": "기본값",
         "pl-PL": "Domyślny",
         "pt-BR": "Padrão",
         "ru-RU": "По умолчанию",
         "tr-TR": "Varsayılan",
+        "uk-UA": "За замовчуванням",
         "vi-VN": "Mặc định",
         "zh-CN": "默认",
     },
@@ -361,23 +520,51 @@ const Translations = {
         "de-DE": "Dein Gerät hat keine Touch-Unterstützung",
         "en-US": "Your device doesn't have touch support",
         "es-ES": "Tu dispositivo no tiene soporte táctil",
+        "fr-FR": "Votre appareil n'a pas de support tactile",
+        "it-IT": "Il tuo dispositivo non ha uno schermo touch",
+        "ja-JP": "お使いのデバイスはタッチ機能をサポートしていません。",
         "ko-KR": "브라우저에서 터치를 지원하지 않습니다.",
         "pl-PL": "Twoje urządzenie nie obsługuję tej funkcji",
         "pt-BR": "Seu dispositivo não possui suporte de toque",
         "ru-RU": "Ваше устройство не поддерживает сенсорное управление",
         "tr-TR": "Cihazınızda dokunmatik ekran özelliği yoktur",
+        "uk-UA": "Ваш пристрій не має підтримки сенсорного керування",
         "vi-VN": "Thiết bị này không hỗ trợ cảm ứng",
         "zh-CN": "您的设备不支持触摸",
+    },
+    "device-vibration": {
+        "de-DE": "Vibration des Geräts",
+        "en-US": "Device vibration",
+        "ja-JP": "デバイスの振動",
+        "pt-BR": "Vibração do dispositivo",
+        "ru-RU": "Вибрация устройства",
+        "tr-TR": "Cihaz titreşimi",
+        "uk-UA": "Вібрація пристрою",
+        "vi-VN": "Rung thiết bị",
+    },
+    "device-vibration-not-using-gamepad": {
+        "de-DE": "An, wenn kein Gamepad verbunden",
+        "en-US": "On when not using gamepad",
+        "ja-JP": "ゲームパッド未使用時にオン",
+        "pt-BR": "Ativar quando não estiver usando o dispositivo",
+        "ru-RU": "Включить когда не используется геймпад",
+        "tr-TR": "Oyun kumandası bağlanmadan titreşim",
+        "uk-UA": "Увімкнена, коли не використовується геймпад",
+        "vi-VN": "Bật khi không dùng tay cầm",
     },
     "disable": {
         "de-DE": "Deaktiviert",
         "en-US": "Disable",
         "es-ES": "Deshabilitar",
+        "fr-FR": "Désactiver",
+        "it-IT": "Disabilita",
+        "ja-JP": "無効",
         "ko-KR": "비활성화",
         "pl-PL": "Wyłącz",
         "pt-BR": "Desabilitar",
         "ru-RU": "Отключить",
         "tr-TR": "Devre dışı bırak",
+        "uk-UA": "Вимкнути",
         "vi-VN": "Vô hiệu hóa",
         "zh-CN": "禁用",
     },
@@ -385,29 +572,45 @@ const Translations = {
         "de-DE": "Bandbreitenüberprüfung deaktivieren",
         "en-US": "Disable bandwidth checking",
         "es-ES": "Desactivar comprobación de ancho de banda",
+        "fr-FR": "Désactiver la vérification de bande passante",
+        "it-IT": "Disabilita il controllo della larghezza di banda",
+        "ja-JP": "帯域幅の警告を非表示",
         "ko-KR": "대역폭 확인 비활성화",
         "pl-PL": "Wyłącz sprawdzanie przepustowości",
         "pt-BR": "Desativar verificação de banda",
         "ru-RU": "Отключить проверку интернета",
         "tr-TR": "İnternet hız testini atla",
+        "uk-UA": "Вимкнути перевірку пропускної здатності",
         "vi-VN": "Tắt kiểm tra băng thông",
         "zh-CN": "禁用带宽测速",
     },
     "disable-post-stream-feedback-dialog": {
         "en-US": "Disable post-stream feedback dialog",
+        "es-ES": "Desactivar diálogo de retroalimentación post-stream",
+        "fr-FR": "Désactiver la boîte de dialogue de commentaires post-stream",
+        "it-IT": "Disabilita la finestra di feedback al termine dello stream",
+        "ja-JP": "ストリーミング終了後のフィードバック画面を非表示",
         "pl-PL": "Wyłącz okno opinii po zakończeniu transmisji",
+        "pt-BR": "Desativar o diálogo de comentários pós-transmissão",
+        "ru-RU": "Отключить диалог обратной связи после стрима",
         "tr-TR": "Yayın sonrası geribildirim ekranını kapat",
+        "uk-UA": "Відключити діалогове вікно зворотного зв’язку після трансляції",
         "vi-VN": "Tắt hộp thoại góp ý sau khi chơi xong",
+        "zh-CN": "禁用反馈问卷",
     },
     "disable-social-features": {
         "de-DE": "Soziale Funktionen deaktivieren",
         "en-US": "Disable social features",
         "es-ES": "Desactivar características sociales",
+        "fr-FR": "Désactiver les fonctionnalités sociales",
+        "it-IT": "Disabilita le funzioni social",
+        "ja-JP": "ソーシャル機能を無効",
         "ko-KR": "소셜 기능 비활성화",
         "pl-PL": "Wyłącz funkcje społecznościowe",
         "pt-BR": "Desativar recursos sociais",
         "ru-RU": "Отключить социальные функции",
         "tr-TR": "Sosyal özellikleri kapat",
+        "uk-UA": "Вимкнути соціальні функції",
         "vi-VN": "Khóa các tính năng xã hội",
         "zh-CN": "禁用社交功能",
     },
@@ -415,61 +618,148 @@ const Translations = {
         "de-DE": "xCloud-Datenanalyse deaktivieren",
         "en-US": "Disable xCloud analytics",
         "es-ES": "Desactivar análisis de xCloud",
+        "fr-FR": "Désactiver les analyses xCloud",
+        "it-IT": "Disabilita l'analitica di xCloud",
+        "ja-JP": "xCloudアナリティクスを無効",
         "ko-KR": "xCloud 통계 비활성화",
         "pl-PL": "Wyłącz analitykę xCloud",
         "pt-BR": "Desativar telemetria do xCloud",
         "ru-RU": "Отключить аналитику xCloud",
         "tr-TR": "xCloud'un veri toplamasını devre dışı bırak",
+        "uk-UA": "Вимкнути аналітику xCloud",
         "vi-VN": "Khóa phân tích thông tin của xCloud",
         "zh-CN": "关闭 xCloud 遥测数据统计",
+    },
+    "enable-controller-shortcuts": {
+        "de-DE": "Controller-Shortcuts aktivieren",
+        "en-US": "Enable controller shortcuts",
+        "es-ES": "Habilitar accesos directos del Joystick",
+        "it-IT": "Consenti scorciatoie da controller",
+        "ja-JP": "コントローラーショートカットを有効化",
+        "pl-PL": "Włącz skróty kontrolera",
+        "pt-BR": "Ativar atalhos do controle",
+        "ru-RU": "Включить быстрые клавиши контроллера",
+        "tr-TR": "Oyun kumandası kısayollarını aç",
+        "uk-UA": "Увімкнути ярлики контролера",
+        "vi-VN": "Bật tính năng phím tắt cho bộ điều khiển",
+        "zh-CN": "启用手柄快捷方式",
     },
     "enable-mic-on-startup": {
         "de-DE": "Mikrofon bei Spielstart aktivieren",
         "en-US": "Enable microphone on game launch",
         "es-ES": "Activar micrófono al iniciar el juego",
+        "fr-FR": "Activer le microphone lors du lancement du jeu",
+        "it-IT": "Abilita il microfono all'avvio del gioco",
+        "ja-JP": "ゲーム起動時にマイクを有効化",
         "ko-KR": "게임 시작 시 마이크 활성화",
         "pl-PL": "Włącz mikrofon przy uruchomieniu gry",
-        "pt-BR": "Ativar microfone na inicialização do jogo",
+        "pt-BR": "Ativar microfone ao iniciar um jogo",
         "ru-RU": "Автоматически включать микрофон при запуске игры",
         "tr-TR": "Oyun başlarken mikrofonu aç",
+        "uk-UA": "Увімкнути мікрофон при запуску гри",
         "vi-VN": "Bật mic lúc vào game",
         "zh-CN": "游戏启动时打开麦克风",
     },
     "enable-queue-ready-notification": { //TODO
-        "en-US": "Enable notification when game is ready",
+        "en-US": "Enable notification when game is ready"
+    },
+    "enable-mkb": {
+        "de-DE": "Maus- und Tastaturunterstützung aktivieren",
+        "en-US": "Enable Mouse & Keyboard support",
+        "es-ES": "Habilitar soporte para ratón y teclado",
+        "it-IT": "Abilitare il supporto di mouse e tastiera",
+        "ja-JP": "マウス＆キーボードのサポートを有効化",
+        "pl-PL": "Włącz obsługę myszy i klawiatury",
+        "pt-BR": "Habilitar suporte ao Mouse & Teclado",
+        "ru-RU": "Включить поддержку мыши и клавиатуры",
+        "tr-TR": "Klavye ve fare desteğini aktive et",
+        "uk-UA": "Увімкнути підтримку миші та клавіатури",
+        "vi-VN": "Kích hoạt hỗ trợ Chuột & Bàn phím",
     },
     "enable-quick-glance-mode": {
         "de-DE": "\"Kurzer Blick\"-Modus aktivieren",
         "en-US": "Enable \"Quick Glance\" mode",
         "es-ES": "Activar modo \"Vista rápida\"",
+        "fr-FR": "Activer le mode \"Aperçu rapide\"",
+        "it-IT": "Abilita la modalità Quick Glance",
+        "ja-JP": "クイック確認モードを有効化",
         "ko-KR": "\"퀵 글랜스\" 모드 활성화",
         "pl-PL": "Włącz tryb \"Quick Glance\"",
-        "pt-BR": "Ativar modo \"Revisão Rápida\"",
+        "pt-BR": "Ativar modo \"Relance\"",
         "ru-RU": "Включить режим «Быстрый взгляд»",
         "tr-TR": "\"Seri Bakış\" modunu aç",
+        "uk-UA": "Увімкнути режим \"Quick Glance\"",
         "vi-VN": "Bật chế độ \"Xem nhanh\"",
         "zh-CN": "仅在打开设置时显示统计信息",
+    },
+    "enable-remote-play-feature": {
+        "de-DE": "\"Remote Play\" Funktion aktivieren",
+        "en-US": "Enable the \"Remote Play\" feature",
+        "es-ES": "Activar la función \"Reproducción remota\"",
+        "it-IT": "Abilitare la funzione \"Riproduzione remota\"",
+        "ja-JP": "リモートプレイ機能を有効化",
+        "pl-PL": "Włącz funkcję \"Gra zdalna\"",
+        "pt-BR": "Ativar o recurso \"Reprodução Remota\"",
+        "ru-RU": "Включить функцию «Удаленная игра»",
+        "tr-TR": "\"Uzaktan Oynama\" özelliğini aktive et",
+        "uk-UA": "Увімкнути функцію \"Remote Play\"",
+        "vi-VN": "Bật tính năng \"Chơi từ xa\"",
     },
     "enable-volume-control": {
         "de-DE": "Lautstärkeregelung aktivieren",
         "en-US": "Enable volume control feature",
         "es-ES": "Habilitar la función de control de volumen",
+        "fr-FR": "Activer la fonction de contrôle du volume",
+        "it-IT": "Abilità controlli volume",
+        "ja-JP": "音量調節機能を有効化",
         "ko-KR": "음량 조절 기능 활성화",
         "pl-PL": "Włącz funkcję kontroli głośności",
         "pt-BR": "Ativar recurso de controle de volume",
+        "ru-RU": "Включить управление громкостью",
         "tr-TR": "Ses düzeyini yönetmeyi etkinleştir",
+        "uk-UA": "Увімкнути функцію керування гучністю",
         "vi-VN": "Bật tính năng điều khiển âm lượng",
         "zh-CN": "启用音量控制",
+    },
+    "fast": {
+        "de-DE": "Schnell",
+        "en-US": "Fast",
+        "es-ES": "Rápido",
+        "it-IT": "Veloce",
+        "ja-JP": "高速",
+        "pl-PL": "Szybko",
+        "pt-BR": "Rápido",
+        "ru-RU": "Быстрый",
+        "tr-TR": "Hızlı",
+        "uk-UA": "Швидкий",
+        "vi-VN": "Nhanh",
+    },
+    "getting-consoles-list": {
+        "de-DE": "Rufe Liste der Konsolen ab...",
+        "en-US": "Getting the list of consoles...",
+        "es-ES": "Obteniendo la lista de consolas...",
+        "it-IT": "Ottenere la lista delle consoles...",
+        "ja-JP": "本体のリストを取得中...",
+        "pl-PL": "Pobieranie listy konsoli...",
+        "pt-BR": "Obtendo a lista de consoles...",
+        "ru-RU": "Получение списка консолей...",
+        "tr-TR": "Konsol listesine erişiliyor...",
+        "uk-UA": "Отримання списку консолей...",
+        "vi-VN": "Đang lấy danh sách các console...",
     },
     "hide-idle-cursor": {
         "de-DE": "Mauszeiger bei Inaktivität ausblenden",
         "en-US": "Hide mouse cursor on idle",
         "es-ES": "Ocultar el cursor del ratón al estar inactivo",
+        "fr-FR": "Masquer le curseur de la souris",
+        "it-IT": "Nascondi il cursore previa inattività",
+        "ja-JP": "マウスカーソルを3秒間動かしていない場合に非表示",
         "ko-KR": "대기 상태에서 마우스 커서 숨기기",
         "pl-PL": "Ukryj kursor myszy podczas bezczynności",
-        "pt-BR": "Ocultar o cursor do mouse no ocioso",
+        "pt-BR": "Ocultar o cursor do mouse quando ocioso",
         "ru-RU": "Скрыть курсор мыши при бездействии",
         "tr-TR": "Boştayken fare imlecini gizle",
+        "uk-UA": "Приховати курсор при очікуванні",
         "vi-VN": "Ẩn con trỏ chuột khi không di chuyển",
         "zh-CN": "空闲时隐藏鼠标",
     },
@@ -477,11 +767,15 @@ const Translations = {
         "de-DE": "Symbol des System-Menüs ausblenden",
         "en-US": "Hide System menu's icon",
         "es-ES": "Ocultar el icono del menú del sistema",
+        "fr-FR": "Masquer l'icône du menu système",
+        "it-IT": "Nascondi icona del menu a tendina",
+        "ja-JP": "システムメニューのアイコンを非表示",
         "ko-KR": "시스템 메뉴 아이콘 숨기기",
         "pl-PL": "Ukryj ikonę menu systemu",
-        "pt-BR": "Ocultar ícone do menu do sistema",
+        "pt-BR": "Ocultar ícone do menu do Sistema",
         "ru-RU": "Скрыть значок системного меню",
         "tr-TR": "Sistem menüsü simgesini gizle",
+        "uk-UA": "Приховати іконку системного меню",
         "vi-VN": "Ẩn biểu tượng của menu Hệ thống",
         "zh-CN": "隐藏系统菜单图标",
     },
@@ -489,11 +783,15 @@ const Translations = {
         "de-DE": "Sprache",
         "en-US": "Language",
         "es-ES": "Idioma",
+        "fr-FR": "Langue",
+        "it-IT": "Lingua",
+        "ja-JP": "言語",
         "ko-KR": "언어",
         "pl-PL": "Język",
         "pt-BR": "Linguagem",
         "ru-RU": "Язык",
         "tr-TR": "Dil",
+        "uk-UA": "Мова",
         "vi-VN": "Ngôn ngữ",
         "zh-CN": "切换语言",
     },
@@ -501,35 +799,86 @@ const Translations = {
         "de-DE": "Groß",
         "en-US": "Large",
         "es-ES": "Grande",
+        "fr-FR": "Grande",
+        "it-IT": "Grande",
+        "ja-JP": "大",
         "ko-KR": "크게",
         "pl-PL": "Duży",
         "pt-BR": "Largo",
         "ru-RU": "Большой",
         "tr-TR": "Büyük",
+        "uk-UA": "Великий",
         "vi-VN": "Lớn",
         "zh-CN": "大",
+    },
+    "layout": {
+        "de-DE": "Layout",
+        "en-US": "Layout",
+        "es-ES": "Diseño",
+        "it-IT": "Layout",
+        "ja-JP": "レイアウト",
+        "pl-PL": "Układ",
+        "pt-BR": "Layout",
+        "ru-RU": "Расположение",
+        "tr-TR": "Arayüz Görünümü",
+        "uk-UA": "Розмітка",
+        "vi-VN": "Bố cục",
     },
     "loading-screen": {
         "de-DE": "Ladebildschirm",
         "en-US": "Loading screen",
         "es-ES": "Pantalla de carga",
+        "fr-FR": "Écran de chargement",
+        "it-IT": "Schermata di caricamento",
+        "ja-JP": "ロード画面",
         "ko-KR": "로딩 화면",
         "pl-PL": "Ekran wczytywania",
         "pt-BR": "Tela de Carregamento",
         "ru-RU": "Экран загрузки",
         "tr-TR": "Yükleme ekranı",
+        "uk-UA": "Екран завантаження",
         "vi-VN": "Màn hình chờ",
         "zh-CN": "载入画面",
+    },
+    "max-bitrate": {
+        "de-DE": "Max. Bitrate",
+        "en-US": "Max bitrate",
+        "es-ES": "Tasa de bits máxima",
+        "it-IT": "Bitrate massimo",
+        "ja-JP": "最大ビットレート",
+        "pl-PL": "Maksymalny bitrate",
+        "pt-BR": "Taxa máxima dos bits",
+        "ru-RU": "Максимальный битрейт",
+        "tr-TR": "Maksimum bithızı",
+        "uk-UA": "Максимальний бітрейт",
+        "vi-VN": "Bitrate tối đa",
+    },
+    "may-not-work-properly": {
+        "de-DE": "Funktioniert evtl. nicht fehlerfrei!",
+        "en-US": "May not work properly!",
+        "es-ES": "¡Puede que no funcione correctamente!",
+        "it-IT": "Potrebbe non funzionare correttamente!",
+        "ja-JP": "正常に動作しない場合があります！",
+        "pl-PL": "Może nie działać poprawnie!",
+        "pt-BR": "Pode não funcionar corretamente!",
+        "ru-RU": "Может работать некорректно!",
+        "tr-TR": "Düzgün çalışmayabilir!",
+        "uk-UA": "Може працювати некоректно!",
+        "vi-VN": "Có thể không hoạt động!",
     },
     "menu-stream-settings": {
         "de-DE": "Stream Einstellungen",
         "en-US": "Stream settings",
         "es-ES": "Ajustes del stream",
+        "fr-FR": "Réglages Stream",
+        "it-IT": "Impostazioni dello stream",
+        "ja-JP": "ストリーミング設定",
         "ko-KR": "스트리밍 설정",
         "pl-PL": "Ustawienia strumienia",
         "pt-BR": "Ajustes de transmissão",
         "ru-RU": "Настройки потоковой передачи",
         "tr-TR": "Yayın ayarları",
+        "uk-UA": "Налаштування трансляції",
         "vi-VN": "Cấu hình stream",
         "zh-CN": "串流设置",
     },
@@ -537,26 +886,89 @@ const Translations = {
         "de-DE": "Stream Statistiken",
         "en-US": "Stream stats",
         "es-ES": "Estadísticas del stream",
+        "fr-FR": "Statistiques du stream",
+        "it-IT": "Statistiche dello stream",
+        "ja-JP": "ストリーミング統計情報",
         "ko-KR": "통계",
         "pl-PL": "Statystyki strumienia",
         "pt-BR": "Estatísticas da transmissão",
         "ru-RU": "Статистика потоковой передачи",
         "tr-TR": "Yayın durumu",
+        "uk-UA": "Статистика трансляції",
         "vi-VN": "Thông số stream",
         "zh-CN": "串流统计数据",
     },
     "menu-stream-mute": {
         "en-US": "Mute Stream",
     },
+    "microphone": {
+        "de-DE": "Mikrofon",
+        "en-US": "Microphone",
+        "es-ES": "Micrófono",
+        "it-IT": "Microfono",
+        "ja-JP": "マイク",
+        "pl-PL": "Mikrofon",
+        "pt-BR": "Microfone",
+        "ru-RU": "Микрофон",
+        "tr-TR": "Mikrofon",
+        "uk-UA": "Мікрофон",
+        "vi-VN": "Micro",
+        "zh-CN": "麦克风",
+    },
+    "mouse-and-keyboard": {
+        "de-DE": "Maus & Tastatur",
+        "en-US": "Mouse & Keyboard",
+        "es-ES": "Ratón y teclado",
+        "it-IT": "Mouse e tastiera",
+        "ja-JP": "マウス＆キーボード",
+        "pl-PL": "Mysz i klawiatura",
+        "pt-BR": "Mouse e Teclado",
+        "ru-RU": "Мышь и клавиатура",
+        "tr-TR": "Klavye ve Fare",
+        "uk-UA": "Миша та клавіатура",
+        "vi-VN": "Chuột và Bàn phím",
+    },
+    "muted": {
+        "de-DE": "Stumm",
+        "en-US": "Muted",
+        "es-ES": "Silenciado",
+        "it-IT": "Microfono disattivato",
+        "ja-JP": "ミュート",
+        "pl-PL": "Wyciszony",
+        "pt-BR": "Mudo",
+        "ru-RU": "Выкл микрофон",
+        "tr-TR": "Kapalı",
+        "uk-UA": "Без звуку",
+        "vi-VN": "Đã tắt âm",
+        "zh-CN": "静音",
+    },
+    "no-consoles-found": {
+        "de-DE": "Keine Konsolen gefunden",
+        "en-US": "No consoles found",
+        "es-ES": "No se encontraron consolas",
+        "it-IT": "Nessuna console trovata",
+        "ja-JP": "本体が見つかりません",
+        "pl-PL": "Nie znaleziono konsoli",
+        "pt-BR": "Nenhum console encontrado",
+        "ru-RU": "Консолей не найдено",
+        "tr-TR": "Konsol bulunamadı",
+        "uk-UA": "Не знайдено консолі",
+        "vi-VN": "Không tìm thấy console nào",
+        "zh-CN": "未找到主机",
+    },
     "normal": {
         "de-DE": "Mittel",
         "en-US": "Normal",
         "es-ES": "Normal",
+        "fr-FR": "Normal",
+        "it-IT": "Normale",
+        "ja-JP": "標準",
         "ko-KR": "보통",
         "pl-PL": "Normalny",
         "pt-BR": "Normal",
         "ru-RU": "Средний",
         "tr-TR": "Normal",
+        "uk-UA": "Нормальний",
         "vi-VN": "Thường",
         "zh-CN": "中",
     },
@@ -564,23 +976,58 @@ const Translations = {
         "de-DE": "Aus",
         "en-US": "Off",
         "es-ES": "Apagado",
+        "fr-FR": "Désactivé",
+        "it-IT": "Off",
+        "ja-JP": "オフ",
         "ko-KR": "꺼짐",
         "pl-PL": "Wyłączone",
         "pt-BR": "Desligado",
         "ru-RU": "Выключен",
         "tr-TR": "Kapalı",
+        "uk-UA": "Вимкнено",
         "vi-VN": "Tắt",
         "zh-CN": "关",
+    },
+    "on": {
+        "de-DE": "An",
+        "en-US": "On",
+        "es-ES": "Activado",
+        "it-IT": "Attivo",
+        "ja-JP": "オン",
+        "pl-PL": "Włącz",
+        "pt-BR": "Ativado",
+        "ru-RU": "Вкл",
+        "tr-TR": "Açık",
+        "uk-UA": "Увімкнено",
+        "vi-VN": "Bật",
+        "zh-CN": "开启",
+    },
+    "only-supports-some-games": {
+        "de-DE": "Unterstützt nur einige Spiele",
+        "en-US": "Only supports some games",
+        "es-ES": "Sólo soporta algunos juegos",
+        "it-IT": "Supporta solo alcuni giochi",
+        "ja-JP": "一部のゲームのみサポート",
+        "pl-PL": "Wspiera tylko niektóre gry",
+        "pt-BR": "Suporta apenas alguns jogos",
+        "ru-RU": "Поддерживает только некоторые игры",
+        "tr-TR": "Yalnızca belli oyunlar destekleniyor",
+        "uk-UA": "Підтримує лише деякі ігри",
+        "vi-VN": "Chỉ hỗ trợ một vài game",
     },
     "opacity": {
         "de-DE": "Deckkraft",
         "en-US": "Opacity",
         "es-ES": "Opacidad",
+        "fr-FR": "Opacité",
+        "it-IT": "Opacità",
+        "ja-JP": "透過度",
         "ko-KR": "불투명도",
         "pl-PL": "Przezroczystość",
-        "pt-BR": "Transparência",
+        "pt-BR": "Opacidade",
         "ru-RU": "Непрозрачность",
         "tr-TR": "Saydamsızlık",
+        "uk-UA": "Непрозорість",
         "vi-VN": "Độ mờ",
         "zh-CN": "透明度",
     },
@@ -588,11 +1035,15 @@ const Translations = {
         "de-DE": "Sonstiges",
         "en-US": "Other",
         "es-ES": "Otro",
+        "fr-FR": "Autres",
+        "it-IT": "Altro",
+        "ja-JP": "その他",
         "ko-KR": "기타",
         "pl-PL": "Inne",
         "pt-BR": "Outros",
         "ru-RU": "Прочее",
         "tr-TR": "Diğer",
+        "uk-UA": "Інше",
         "vi-VN": "Khác",
         "zh-CN": "其他",
     },
@@ -600,23 +1051,59 @@ const Translations = {
         "de-DE": "Position",
         "en-US": "Position",
         "es-ES": "Posición",
+        "fr-FR": "Position",
+        "it-IT": "Posizione",
+        "ja-JP": "位置",
         "ko-KR": "위치",
         "pl-PL": "Pozycja",
         "pt-BR": "Posição",
         "ru-RU": "Расположение",
         "tr-TR": "Konum",
+        "uk-UA": "Позиція",
         "vi-VN": "Vị trí",
         "zh-CN": "位置",
+    },
+    "powered-off": {
+        "de-DE": "Ausgeschaltet",
+        "en-US": "Powered off",
+        "es-ES": "Desactivado",
+        "it-IT": "Spento",
+        "ja-JP": "本体オフ",
+        "pl-PL": "Zasilanie wyłączone",
+        "pt-BR": "Desligado",
+        "ru-RU": "Выключено",
+        "tr-TR": "Kapalı",
+        "uk-UA": "Вимкнений",
+        "vi-VN": "Đã tắt nguồn",
+        "zh-CN": "关机",
+    },
+    "powered-on": {
+        "de-DE": "Eingeschaltet",
+        "en-US": "Powered on",
+        "es-ES": "Activado",
+        "it-IT": "Acceso",
+        "ja-JP": "本体オン",
+        "pl-PL": "Zasilanie włączone",
+        "pt-BR": "Ligado",
+        "ru-RU": "Включено",
+        "tr-TR": "Açık",
+        "uk-UA": "Увімкнений",
+        "vi-VN": "Đang bật nguồn",
+        "zh-CN": "开机",
     },
     "prefer-ipv6-server": {
         "de-DE": "IPv6-Server bevorzugen",
         "en-US": "Prefer IPv6 server",
         "es-ES": "Servidor IPv6 preferido",
+        "fr-FR": "Préférer le serveur IPv6",
+        "it-IT": "Preferisci server IPv6",
+        "ja-JP": "IPv6 サーバーを優先",
         "ko-KR": "IPv6 서버 우선",
         "pl-PL": "Preferuj serwer IPv6",
         "pt-BR": "Preferir servidor IPV6",
         "ru-RU": "Предпочитать IPv6 сервер",
         "tr-TR": "IPv6 sunucusunu tercih et",
+        "uk-UA": "Віддавати перевагу IPv6",
         "vi-VN": "Ưu tiên máy chủ IPv6",
         "zh-CN": "优先使用 IPv6 服务器",
     },
@@ -624,11 +1111,15 @@ const Translations = {
         "de-DE": "Bevorzugte Spielsprache",
         "en-US": "Preferred game's language",
         "es-ES": "Idioma preferencial del juego",
+        "fr-FR": "Langue préférée du jeu",
+        "it-IT": "Lingua del gioco preferita",
+        "ja-JP": "ゲームの優先言語設定",
         "ko-KR": "선호하는 게임 언어",
         "pl-PL": "Preferowany język gry",
         "pt-BR": "Idioma preferencial do jogo",
         "ru-RU": "Предпочитаемый язык игры",
         "tr-TR": "Oyunda tercih edilen dil",
+        "uk-UA": "Бажана мова гри",
         "vi-VN": "Ngôn ngữ game ưu tiên",
         "zh-CN": "首选游戏语言",
     },
@@ -636,11 +1127,15 @@ const Translations = {
         "de-DE": "Seitenverhältnis",
         "en-US": "Ratio",
         "es-ES": "Relación de aspecto",
+        "fr-FR": "Ratio",
+        "it-IT": "Rapporto",
+        "ja-JP": "比率",
         "ko-KR": "화면 비율",
         "pl-PL": "Współczynnik proporcji",
         "pt-BR": "Proporção",
         "ru-RU": "Соотношение сторон",
         "tr-TR": "Görüntü oranı",
+        "uk-UA": "Співвідношення сторін",
         "vi-VN": "Tỉ lệ",
         "zh-CN": "宽高比",
     },
@@ -648,11 +1143,15 @@ const Translations = {
         "de-DE": "Animationen reduzieren",
         "en-US": "Reduce UI animations",
         "es-ES": "Reduce las animaciones de la interfaz",
+        "fr-FR": "Réduire les animations dans l’interface",
+        "it-IT": "Animazioni ridottte",
+        "ja-JP": "UIアニメーションを減らす",
         "ko-KR": "애니메이션 감소",
         "pl-PL": "Ogranicz animacje interfejsu",
         "pt-BR": "Reduzir animações da interface",
         "ru-RU": "Убрать анимации интерфейса",
         "tr-TR": "Arayüz animasyonlarını azalt",
+        "uk-UA": "Зменшити анімацію інтерфейсу",
         "vi-VN": "Giảm hiệu ứng chuyển động",
         "zh-CN": "减少UI动画",
     },
@@ -660,23 +1159,45 @@ const Translations = {
         "de-DE": "Region",
         "en-US": "Region",
         "es-ES": "Región",
+        "fr-FR": "Région",
+        "it-IT": "Regione",
+        "ja-JP": "地域",
         "ko-KR": "지역",
         "pl-PL": "Region",
         "pt-BR": "Região",
         "ru-RU": "Регион",
         "tr-TR": "Bölge",
+        "uk-UA": "Регіон",
         "vi-VN": "Khu vực",
         "zh-CN": "地区",
+    },
+    "remote-play": {
+        "de-DE": "Remote Play",
+        "en-US": "Remote Play",
+        "es-ES": "Reproducción remota",
+        "it-IT": "Riproduzione Remota",
+        "ja-JP": "リモートプレイ",
+        "pl-PL": "Gra zdalna",
+        "pt-BR": "Jogo Remoto",
+        "ru-RU": "Удаленная игра",
+        "tr-TR": "Uzaktan Bağlanma",
+        "uk-UA": "Віддалена гра",
+        "vi-VN": "Chơi từ xa",
+        "zh-CN": "远程游玩",
     },
     "rocket-always-hide": {
         "de-DE": "Immer ausblenden",
         "en-US": "Always hide",
         "es-ES": "Ocultar siempre",
+        "fr-FR": "Toujours masquer",
+        "it-IT": "Nascondi sempre",
+        "ja-JP": "常に非表示",
         "ko-KR": "항상 숨기기",
         "pl-PL": "Zawsze ukrywaj",
         "pt-BR": "Sempre ocultar",
         "ru-RU": "Всегда скрывать",
         "tr-TR": "Her zaman gizle",
+        "uk-UA": "Ховати завжди",
         "vi-VN": "Luôn ẩn",
         "zh-CN": "始终隐藏",
     },
@@ -684,11 +1205,15 @@ const Translations = {
         "de-DE": "Immer anzeigen",
         "en-US": "Always show",
         "es-ES": "Mostrar siempre",
+        "fr-FR": "Toujours afficher",
+        "it-IT": "Mostra sempre",
+        "ja-JP": "常に表示",
         "ko-KR": "항상 표시",
         "pl-PL": "Zawsze pokazuj",
         "pt-BR": "Sempre mostrar",
         "ru-RU": "Всегда показывать",
         "tr-TR": "Her zaman göster",
+        "uk-UA": "Показувати завжди",
         "vi-VN": "Luôn hiển thị",
         "zh-CN": "始终显示",
     },
@@ -696,11 +1221,15 @@ const Translations = {
         "de-DE": "Raketen Animation",
         "en-US": "Rocket animation",
         "es-ES": "Animación del cohete",
+        "fr-FR": "Animation de la fusée",
+        "it-IT": "Razzo animato",
+        "ja-JP": "ロケットのアニメーション",
         "ko-KR": "로켓 애니메이션",
         "pl-PL": "Animacja rakiety",
         "pt-BR": "Animação do foguete",
         "ru-RU": "Анимация ракеты",
         "tr-TR": "Roket animasyonu",
+        "uk-UA": "Анімація ракети",
         "vi-VN": "Phi thuyền",
         "zh-CN": "火箭动画",
     },
@@ -708,11 +1237,15 @@ const Translations = {
         "de-DE": "Bei Warteschlange ausblenden",
         "en-US": "Hide when queuing",
         "es-ES": "Ocultar al hacer cola",
+        "fr-FR": "Masquer lors de la file d'attente",
+        "it-IT": "Nascondi durante la coda",
+        "ja-JP": "待機中は非表示",
         "ko-KR": "대기 중에는 숨기기",
         "pl-PL": "Ukryj podczas czekania w kolejce",
         "pt-BR": "Ocultar quando estiver na fila",
         "ru-RU": "Скрыть, когда есть очередь",
         "tr-TR": "Sıradayken gizle",
+        "uk-UA": "Не показувати у черзі",
         "vi-VN": "Ẩn khi xếp hàng chờ",
         "zh-CN": "排队时隐藏",
     },
@@ -720,11 +1253,15 @@ const Translations = {
         "de-DE": "Ausführen von \"Better xCloud\" fehlgeschlagen. Versuche es erneut, bitte warten...",
         "en-US": "Failed to run Better xCloud. Retrying, please wait...",
         "es-ES": "No se pudo ejecutar Better xCloud. Reintentando, por favor espera...",
+        "fr-FR": "Impossible d'exécuter Better xCloud. Nouvelle tentative, veuillez patienter...",
+        "it-IT": "Si è verificato un errore durante l'esecuzione di Better xCloud. Nuovo tentativo, attendere...",
+        "ja-JP": "Better xCloud の実行に失敗しました。再試行中...",
         "ko-KR": "Better xCloud 시작에 실패했습니다. 재시도중이니 잠시만 기다려 주세요.",
         "pl-PL": "Nie udało się uruchomić Better xCloud. Ponawiam próbę...",
         "pt-BR": "Falha ao executar o Better xCloud. Tentando novamente, aguarde...",
         "ru-RU": "Не удалось запустить Better xCloud. Идет перезапуск, пожалуйста, подождите...",
         "tr-TR": "Better xCloud çalıştırılamadı. Yeniden deneniyor...",
+        "uk-UA": "Не вдалий старт Better xCloud. Повторна спроба, будь ласка, зачекайте...",
         "vi-VN": "Không thể chạy Better xCloud. Đang thử lại, vui lòng chờ...",
         "zh-CN": "插件无法运行。正在重试，请稍候...",
     },
@@ -732,11 +1269,15 @@ const Translations = {
         "de-DE": "Sättigung",
         "en-US": "Saturation",
         "es-ES": "Saturación",
+        "fr-FR": "Saturation",
+        "it-IT": "Saturazione",
+        "ja-JP": "彩度",
         "ko-KR": "채도",
         "pl-PL": "Nasycenie",
         "pt-BR": "Saturação",
         "ru-RU": "Насыщенность",
         "tr-TR": "Renk doygunluğu",
+        "uk-UA": "Насиченість",
         "vi-VN": "Độ bão hòa",
         "zh-CN": "饱和度",
     },
@@ -744,11 +1285,15 @@ const Translations = {
         "de-DE": "Position des Screenshot-Buttons",
         "en-US": "Screenshot button's position",
         "es-ES": "Posición del botón de captura de pantalla",
+        "fr-FR": "Position du bouton de capture d'écran",
+        "it-IT": "Posizione del pulsante screenshot",
+        "ja-JP": "スクリーンショットボタンの位置",
         "ko-KR": "스크린샷 버튼 위치",
         "pl-PL": "Pozycja przycisku zrzutu ekranu",
         "pt-BR": "Posição do botão de captura de tela",
         "ru-RU": "Расположение кнопки скриншота",
         "tr-TR": "Ekran görüntüsü düğmesi konumu",
+        "uk-UA": "Позиція кнопки скриншоту",
         "vi-VN": "Vị trí của nút Chụp màn hình",
         "zh-CN": "截图按钮位置",
     },
@@ -756,11 +1301,15 @@ const Translations = {
         "de-DE": "Server",
         "en-US": "Server",
         "es-ES": "Servidor",
+        "fr-FR": "Serveur",
+        "it-IT": "Server",
+        "ja-JP": "サーバー",
         "ko-KR": "서버",
         "pl-PL": "Serwer",
         "pt-BR": "Servidor",
         "ru-RU": "Сервер",
         "tr-TR": "Sunucu",
+        "uk-UA": "Сервер",
         "vi-VN": "Máy chủ",
         "zh-CN": "服务器",
     },
@@ -768,11 +1317,15 @@ const Translations = {
         "de-DE": "Seite neu laden und Änderungen anwenden",
         "en-US": "Reload page to reflect changes",
         "es-ES": "Actualice la página para aplicar los cambios",
+        "fr-FR": "Recharger la page pour bénéficier des changements",
+        "it-IT": "Applica e ricarica la pagina",
+        "ja-JP": "ページを更新をして設定変更を適用",
         "ko-KR": "변경 사항을 적용하려면 페이지를 다시 로드하세요.",
         "pl-PL": "Odśwież stronę, aby zastosować zmiany",
         "pt-BR": "Recarregue a página para refletir as alterações",
         "ru-RU": "Перезагрузить страницу, чтобы применить изменения",
         "tr-TR": "Kaydetmek için sayfayı yenile",
+        "uk-UA": "Перезавантажте сторінку, щоб застосувати зміни",
         "vi-VN": "Tải lại trang để áp dụng các thay đổi",
         "zh-CN": "重新加载页面以应用更改",
     },
@@ -780,11 +1333,15 @@ const Translations = {
         "de-DE": "Wird neu geladen...",
         "en-US": "Reloading...",
         "es-ES": "Recargando...",
+        "fr-FR": "Actualisation...",
+        "it-IT": "Ricaricamento...",
+        "ja-JP": "更新中...",
         "ko-KR": "새로고침하는 중...",
         "pl-PL": "Ponowne ładowanie...",
         "pt-BR": "Recarregando...",
         "ru-RU": "Перезагрузка...",
         "tr-TR": "Sayfa yenileniyor...",
+        "uk-UA": "Перезавантаження...",
         "vi-VN": "Đang tải lại...",
         "zh-CN": "正在重新加载...",
     },
@@ -792,11 +1349,15 @@ const Translations = {
         "de-DE": "Poster des Spiels anzeigen",
         "en-US": "Show game art",
         "es-ES": "Mostrar imagen del juego",
+        "fr-FR": "Afficher la couverture du jeu",
+        "it-IT": "Mostra immagine del gioco",
+        "ja-JP": "ゲームアートを表示",
         "ko-KR": "게임 아트 표시",
         "pl-PL": "Pokaż okładkę gry",
         "pt-BR": "Mostrar arte do jogo",
         "ru-RU": "Показывать игровую обложку",
         "tr-TR": "Oyun resmini göster",
+        "uk-UA": "Показувати ігровий арт",
         "vi-VN": "Hiển thị ảnh game",
         "zh-CN": "显示游戏封面",
     },
@@ -804,11 +1365,15 @@ const Translations = {
         "de-DE": "Statistiken beim Start des Spiels anzeigen",
         "en-US": "Show stats when starting the game",
         "es-ES": "Mostrar estadísticas al iniciar el juego",
+        "fr-FR": "Afficher les statistiques au démarrage de la partie",
+        "it-IT": "Mostra le statistiche quando si avvia la partita",
+        "ja-JP": "ゲーム開始時に統計情報を表示",
         "ko-KR": "게임 시작 시 통계 보여주기",
         "pl-PL": "Pokaż statystyki podczas uruchamiania gry",
         "pt-BR": "Mostrar estatísticas ao iniciar o jogo",
         "ru-RU": "Показывать статистику при запуске игры",
         "tr-TR": "Oyun başlatırken yayın durumunu göster",
+        "uk-UA": "Показувати статистику при запуску гри",
         "vi-VN": "Hiển thị thông số khi vào game",
         "zh-CN": "开始游戏时显示统计信息",
     },
@@ -816,11 +1381,15 @@ const Translations = {
         "de-DE": "Geschätzte Wartezeit anzeigen",
         "en-US": "Show the estimated wait time",
         "es-ES": "Mostrar el tiempo de espera estimado",
+        "fr-FR": "Afficher le temps d'attente estimé",
+        "it-IT": "Mostra una stima del tempo di attesa",
+        "ja-JP": "推定待機時間を表示",
         "ko-KR": "예상 대기 시간 표시",
         "pl-PL": "Pokaż szacowany czas oczekiwania",
         "pt-BR": "Mostrar o tempo estimado de espera",
         "ru-RU": "Показать предполагаемое время до запуска",
         "tr-TR": "Tahminî bekleme süresini göster",
+        "uk-UA": "Показувати орієнтовний час очікування",
         "vi-VN": "Hiển thị thời gian chờ dự kiến",
         "zh-CN": "显示预计等待时间",
     },
@@ -828,47 +1397,117 @@ const Translations = {
         "de-DE": "Stream-Menü vereinfachen",
         "en-US": "Simplify Stream's menu",
         "es-ES": "Simplificar el menú del stream",
+        "fr-FR": "Simplifier le menu Stream",
+        "it-IT": "Semplifica il menu della trasmissione",
+        "ja-JP": "ストリーミングメニューのラベルを非表示",
         "ko-KR": "메뉴 간단히 보기",
         "pl-PL": "Uprość menu strumienia",
-        "pt-BR": "Simplificar menu do streaming",
+        "pt-BR": "Simplificar menu de transmissão",
         "ru-RU": "Упростить меню потока",
         "tr-TR": "Yayın menüsünü basitleştir",
+        "uk-UA": "Спростити меню трансляції",
         "vi-VN": "Đơn giản hóa menu của Stream",
         "zh-CN": "简化菜单",
     },
     "skip-splash-video": {
-        "de-DE": "Xbox Logo überspringen",
+        "de-DE": "Xbox-Logo bei Spielstart überspringen",
         "en-US": "Skip Xbox splash video",
         "es-ES": "Saltar vídeo de presentación de Xbox",
+        "fr-FR": "Ignorer la vidéo de démarrage Xbox",
+        "it-IT": "Salta il logo Xbox iniziale",
+        "ja-JP": "Xboxの起動画面をスキップ",
         "ko-KR": "Xbox 스플래시 건너뛰기",
         "pl-PL": "Pomiń wstępne intro Xbox",
-        "pt-BR": "Pular vídeo de abertura do Xbox",
+        "pt-BR": "Pular introdução do Xbox",
         "ru-RU": "Пропустить видео с заставкой Xbox",
         "tr-TR": "Xbox açılış ekranını atla",
+        "uk-UA": "Пропустити заставку Xbox",
         "vi-VN": "Bỏ qua video Xbox",
         "zh-CN": "跳过 Xbox 启动动画",
+    },
+    "slow": {
+        "de-DE": "Langsam",
+        "en-US": "Slow",
+        "es-ES": "Lento",
+        "it-IT": "Lento",
+        "ja-JP": "低速",
+        "pl-PL": "Wolno",
+        "pt-BR": "Lento",
+        "ru-RU": "Медленный",
+        "tr-TR": "Yavaş",
+        "uk-UA": "Повільний",
+        "vi-VN": "Chậm",
     },
     "small": {
         "de-DE": "Klein",
         "en-US": "Small",
         "es-ES": "Pequeño",
+        "fr-FR": "Petite",
+        "it-IT": "Piccolo",
+        "ja-JP": "小",
         "ko-KR": "작게",
         "pl-PL": "Mały",
         "pt-BR": "Pequeno",
         "ru-RU": "Маленький",
         "tr-TR": "Küçük",
+        "uk-UA": "Маленький",
         "vi-VN": "Nhỏ",
         "zh-CN": "小",
+    },
+    "smart-tv": {
+        "de-DE": "Smart TV",
+        "en-US": "Smart TV",
+        "es-ES": "Smart TV",
+        "it-IT": "Smart TV",
+        "ja-JP": "スマートTV",
+        "pl-PL": "Smart TV",
+        "pt-BR": "Smart TV",
+        "ru-RU": "Smart TV",
+        "tr-TR": "Akıllı TV",
+        "uk-UA": "Smart TV",
+        "vi-VN": "TV thông minh",
+    },
+    "sound": {
+        "de-DE": "Ton",
+        "en-US": "Sound",
+        "es-ES": "Sonido",
+        "it-IT": "Suoni",
+        "ja-JP": "サウンド",
+        "pl-PL": "Dźwięk",
+        "pt-BR": "Som",
+        "ru-RU": "Звук",
+        "tr-TR": "Ses",
+        "uk-UA": "Звук",
+        "vi-VN": "Âm thanh",
+        "zh-CN": "声音",
+    },
+    "standby": {
+        "de-DE": "Standby",
+        "en-US": "Standby",
+        "es-ES": "Modo de espera",
+        "it-IT": "Sospendi",
+        "ja-JP": "スタンバイ",
+        "pl-PL": "Stan czuwania",
+        "pt-BR": "Suspenso",
+        "ru-RU": "Режим ожидания",
+        "tr-TR": "Beklemede",
+        "uk-UA": "Режим очікування",
+        "vi-VN": "Đang ở chế độ chờ",
+        "zh-CN": "待机",
     },
     "stat-bitrate": {
         "de-DE": "Bitrate",
         "en-US": "Bitrate",
         "es-ES": "Tasa de bits",
+        "fr-FR": "Bitrate",
+        "it-IT": "Bitrate",
+        "ja-JP": "ビットレート",
         "ko-KR": "비트레이트",
         "pl-PL": "Bitrate",
         "pt-BR": "Bitrate",
         "ru-RU": "Скорость соединения",
         "tr-TR": "Bit hızı",
+        "uk-UA": "Бітрейт",
         "vi-VN": "Bitrate",
         "zh-CN": "码率",
     },
@@ -876,11 +1515,15 @@ const Translations = {
         "de-DE": "Dekodierzeit",
         "en-US": "Decode time",
         "es-ES": "Tiempo de decodificación",
+        "fr-FR": "Décodage",
+        "it-IT": "Decodifica",
+        "ja-JP": "デコード時間",
         "ko-KR": "디코딩 시간",
         "pl-PL": "Czas dekodowania",
         "pt-BR": "Tempo de decodificação",
         "ru-RU": "Время декодирования",
         "tr-TR": "Kod çözme süresi",
+        "uk-UA": "Час декодування",
         "vi-VN": "Thời gian giải mã",
         "zh-CN": "解码时间",
     },
@@ -888,11 +1531,15 @@ const Translations = {
         "de-DE": "Framerate",
         "en-US": "FPS",
         "es-ES": "FPS",
+        "fr-FR": "FPS",
+        "it-IT": "FPS",
+        "ja-JP": "FPS",
         "ko-KR": "FPS",
         "pl-PL": "FPS",
         "pt-BR": "FPS",
         "ru-RU": "Кадр/сек",
         "tr-TR": "FPS",
+        "uk-UA": "Кадрів на секунду",
         "vi-VN": "FPS",
         "zh-CN": "帧率",
     },
@@ -900,11 +1547,15 @@ const Translations = {
         "de-DE": "Verlorene Frames",
         "en-US": "Frames lost",
         "es-ES": "Pérdida de fotogramas",
+        "fr-FR": "Images perdues",
+        "it-IT": "Perdita di fotogrammi",
+        "ja-JP": "フレームロス",
         "ko-KR": "프레임 손실",
         "pl-PL": "Utracone klatki",
         "pt-BR": "Quadros perdidos",
         "ru-RU": "Потери кадров",
         "tr-TR": "Kare kaybı",
+        "uk-UA": "Кадрів втрачено",
         "vi-VN": "Số khung hình bị mất",
         "zh-CN": "丢帧",
     },
@@ -912,11 +1563,15 @@ const Translations = {
         "de-DE": "Paketverluste",
         "en-US": "Packets lost",
         "es-ES": "Pérdida de paquetes",
+        "fr-FR": "Perte paquets",
+        "it-IT": "Perdita di pacchetti",
+        "ja-JP": "パケットロス",
         "ko-KR": "패킷 손실",
         "pl-PL": "Utracone pakiety",
         "pt-BR": "Pacotes perdidos",
         "ru-RU": "Потери пакетов",
         "tr-TR": "Paket kaybı",
+        "uk-UA": "Пакетів втрачено",
         "vi-VN": "Số gói tin bị mất",
         "zh-CN": "丢包",
     },
@@ -924,11 +1579,15 @@ const Translations = {
         "de-DE": "Ping",
         "en-US": "Ping",
         "es-ES": "Latencia",
+        "fr-FR": "Ping",
+        "it-IT": "Ping",
+        "ja-JP": "Ping",
         "ko-KR": "지연 시간",
         "pl-PL": "Ping",
         "pt-BR": "Ping",
         "ru-RU": "Задержка соединения",
         "tr-TR": "Gecikme",
+        "uk-UA": "Затримка",
         "vi-VN": "Ping",
         "zh-CN": "延迟",
     },
@@ -936,11 +1595,15 @@ const Translations = {
         "de-DE": "Statistiken",
         "en-US": "Stats",
         "es-ES": "Estadísticas",
+        "fr-FR": "Stats",
+        "it-IT": "Statistiche",
+        "ja-JP": "統計情報",
         "ko-KR": "통계",
         "pl-PL": "Statystyki",
         "pt-BR": "Estatísticas",
         "ru-RU": "Статистика",
         "tr-TR": "Durum",
+        "uk-UA": "Статистика",
         "vi-VN": "Các thông số",
         "zh-CN": "统计信息",
     },
@@ -948,11 +1611,15 @@ const Translations = {
         "de-DE": "Stream",
         "en-US": "Stream",
         "es-ES": "Stream",
+        "fr-FR": "Stream",
+        "it-IT": "Stream",
+        "ja-JP": "ストリーミング",
         "ko-KR": "스트리밍",
         "pl-PL": "Stream",
-        "pt-BR": "Stream",
+        "pt-BR": "Transmissão",
         "ru-RU": "Видеопоток",
         "tr-TR": "Yayın",
+        "uk-UA": "Трансляція",
         "vi-VN": "Stream",
         "zh-CN": "串流",
     },
@@ -972,23 +1639,41 @@ const Translations = {
         "de-DE": "Strecken",
         "en-US": "Stretch",
         "es-ES": "Estirado",
+        "fr-FR": "Étirer",
+        "it-IT": "Riempi",
+        "ja-JP": "引き伸ばし",
         "ko-KR": "채우기",
         "pl-PL": "Rozciągnij",
         "pt-BR": "Esticar",
         "ru-RU": "Растянуть",
         "tr-TR": "Genişlet",
+        "uk-UA": "Розтягнути",
         "vi-VN": "Kéo giãn",
         "zh-CN": "拉伸",
+    },
+    "swap-buttons": {
+        "de-DE": "Tasten tauschen",
+        "en-US": "Swap buttons",
+        "ja-JP": "ボタン入れ替え",
+        "pt-BR": "Trocar botões",
+        "ru-RU": "Поменять кнопки",
+        "tr-TR": "Düğme düzenini ters çevir",
+        "uk-UA": "Поміняти кнопки місцями",
+        "vi-VN": "Hoán đổi nút",
     },
     "target-resolution": {
         "de-DE": "Festgelegte Auflösung",
         "en-US": "Target resolution",
         "es-ES": "Calidad de imagen",
+        "fr-FR": "Résolution cible",
+        "it-IT": "Risoluzione prevista",
+        "ja-JP": "ターゲット解像度",
         "ko-KR": "목표 해상도",
         "pl-PL": "Rozdzielczość docelowa",
         "pt-BR": "Resolução alvo",
         "ru-RU": "Целевое разрешение",
         "tr-TR": "Tercih edilen çözünürlük",
+        "uk-UA": "Цільова роздільна здатність",
         "vi-VN": "Độ phân giải",
         "zh-CN": "目标分辨率",
     },
@@ -996,11 +1681,15 @@ const Translations = {
         "de-DE": "Alle Spiele",
         "en-US": "All games",
         "es-ES": "Todos los juegos",
+        "fr-FR": "Tous les jeux",
+        "it-IT": "Tutti i giochi",
+        "ja-JP": "全てのゲームで有効",
         "ko-KR": "모든 게임",
         "pl-PL": "Wszystkie gry",
         "pt-BR": "Todos os jogos",
         "ru-RU": "Все игры",
         "tr-TR": "Tüm oyunlar",
+        "uk-UA": "Всі ігри",
         "vi-VN": "Tất cả các game",
         "zh-CN": "所有游戏",
     },
@@ -1008,11 +1697,15 @@ const Translations = {
         "de-DE": "Komplett weiß",
         "en-US": "All white",
         "es-ES": "Todo blanco",
+        "fr-FR": "Tout blanc",
+        "it-IT": "Tutti bianchi",
+        "ja-JP": "オールホワイト",
         "ko-KR": "모두 하얗게",
         "pl-PL": "Wszystkie białe",
-        "pt-BR": "Tudo branco",
+        "pt-BR": "Todo branco",
         "ru-RU": "Полностью белые",
         "tr-TR": "Hepsi beyaz",
+        "uk-UA": "Все біле",
         "vi-VN": "Trắng hoàn toàn",
         "zh-CN": "白色",
     },
@@ -1020,11 +1713,15 @@ const Translations = {
         "de-DE": "Verfügbarkeit",
         "en-US": "Availability",
         "es-ES": "Disponibilidad",
+        "fr-FR": "Disponibilité",
+        "it-IT": "Disponibilità",
+        "ja-JP": "強制的に有効化",
         "ko-KR": "사용 여부",
         "pl-PL": "Dostępność",
         "pt-BR": "Disponibilidade",
         "ru-RU": "В каких играх включить",
         "tr-TR": "Uygunluk durumu",
+        "uk-UA": "Доступність",
         "vi-VN": "Khả dụng",
         "zh-CN": "启用",
     },
@@ -1032,11 +1729,15 @@ const Translations = {
         "de-DE": "Angepasstes Layout Button Stil",
         "en-US": "Custom layout's button style",
         "es-ES": "Estilo de botones de diseño personalizado",
+        "fr-FR": "Style personnalisé des boutons",
+        "it-IT": "Layout dei tasti personalizzato",
+        "ja-JP": "カスタムレイアウト",
         "ko-KR": "커스텀 레이아웃의 버튼 스타일",
         "pl-PL": "Niestandardowy układ przycisków",
         "pt-BR": "Estilo de botão do layout personalizado",
         "ru-RU": "Пользовательский стиль кнопок",
         "tr-TR": "Özelleştirilmiş düğme düzeninin biçimi",
+        "uk-UA": "Користувацький стиль кнопок",
         "vi-VN": "Màu của bố cục tùy chọn",
         "zh-CN": "特殊游戏按钮样式",
     },
@@ -1044,11 +1745,15 @@ const Translations = {
         "de-DE": "Matte Farben",
         "en-US": "Muted colors",
         "es-ES": "Colores apagados",
+        "fr-FR": "Couleurs adoucies",
+        "it-IT": "Riduci intensità colori",
+        "ja-JP": "ミュートカラー",
         "ko-KR": "저채도 색상",
         "pl-PL": "Stonowane kolory",
         "pt-BR": "Cores silenciadas",
         "ru-RU": "Приглушенные цвета",
         "tr-TR": "Yumuşak renkler",
+        "uk-UA": "Приглушені кольори",
         "vi-VN": "Màu câm",
         "zh-CN": "低饱和度",
     },
@@ -1056,11 +1761,15 @@ const Translations = {
         "de-DE": "Standard Layout Button Stil",
         "en-US": "Standard layout's button style",
         "es-ES": "Estilo de botones de diseño estándar",
+        "fr-FR": "Style standard des boutons",
+        "it-IT": "Layout dei tasti standard",
+        "ja-JP": "標準レイアウト",
         "ko-KR": "표준 레이아웃의 버튼 스타일",
         "pl-PL": "Standardowy układ przycisków",
-        "pt-BR": "Estilo padrão de botões do layout",
+        "pt-BR": "Estilo de botão do layout padrão",
         "ru-RU": "Стандартный стиль кнопок",
         "tr-TR": "Varsayılan düğme düzeninin biçimi",
+        "uk-UA": "Стандартний стиль кнопок",
         "vi-VN": "Màu của bố cục tiêu chuẩn",
         "zh-CN": "通用按钮样式",
     },
@@ -1068,11 +1777,15 @@ const Translations = {
         "de-DE": "Textgröße",
         "en-US": "Text size",
         "es-ES": "Tamano del texto",
+        "fr-FR": "Taille du texte",
+        "it-IT": "Dimensione del testo",
+        "ja-JP": "文字サイズ",
         "ko-KR": "글자 크기",
         "pl-PL": "Rozmiar tekstu",
         "pt-BR": "Tamanho do texto",
         "ru-RU": "Размер текста",
         "tr-TR": "Metin boyutu",
+        "uk-UA": "Розмір тексту",
         "vi-VN": "Cỡ chữ",
         "zh-CN": "文字大小",
     },
@@ -1080,11 +1793,15 @@ const Translations = {
         "de-DE": "Oben zentriert",
         "en-US": "Top-center",
         "es-ES": "Superior centrado",
+        "fr-FR": "En haut au centre",
+        "it-IT": "In alto al centro",
+        "ja-JP": "上",
         "ko-KR": "중앙 상단",
         "pl-PL": "Wyśrodkowany na górze",
         "pt-BR": "Superior-centralizado",
         "ru-RU": "Сверху",
         "tr-TR": "Orta üst",
+        "uk-UA": "Зверху праворуч",
         "vi-VN": "Chính giữa phía trên",
         "zh-CN": "顶部居中",
     },
@@ -1092,11 +1809,15 @@ const Translations = {
         "de-DE": "Oben links",
         "en-US": "Top-left",
         "es-ES": "Superior izquierdo",
+        "fr-FR": "Haut-gauche",
+        "it-IT": "In alto a sinistra",
+        "ja-JP": "左上",
         "ko-KR": "좌측 상단",
         "pl-PL": "Lewy górny róg",
         "pt-BR": "Superior-esquerdo",
         "ru-RU": "Левый верхний угол",
         "tr-TR": "Sol üst",
+        "uk-UA": "Зверху ліворуч",
         "vi-VN": "Phía trên bên trái",
         "zh-CN": "左上角",
     },
@@ -1104,11 +1825,15 @@ const Translations = {
         "de-DE": "Oben rechts",
         "en-US": "Top-right",
         "es-ES": "Superior derecho",
+        "fr-FR": "En haut à droite",
+        "it-IT": "In alto a destra",
+        "ja-JP": "右上",
         "ko-KR": "우측 상단",
         "pl-PL": "Prawy górny róg",
         "pt-BR": "Superior-direito",
         "ru-RU": "Справа",
         "tr-TR": "Sağ üst",
+        "uk-UA": "Зверху праворуч",
         "vi-VN": "Phía trên bên phải",
         "zh-CN": "右上角",
     },
@@ -1116,11 +1841,15 @@ const Translations = {
         "de-DE": "Touch-Controller",
         "en-US": "Touch controller",
         "es-ES": "Controles táctiles",
+        "fr-FR": "Commandes tactiles",
+        "it-IT": "Controller Touch",
+        "ja-JP": "タッチコントローラー",
         "ko-KR": "터치 컨트롤",
         "pl-PL": "Sterowanie dotykiem",
         "pt-BR": "Controle de toque",
         "ru-RU": "Сенсорные кнопки",
         "tr-TR": "Dokunmatik oyun kumandası",
+        "uk-UA": "Сенсорне керування",
         "vi-VN": "Bộ điều khiển cảm ứng",
         "zh-CN": "虚拟摇杆",
     },
@@ -1128,11 +1857,15 @@ const Translations = {
         "de-DE": "Transparenter Hintergrund",
         "en-US": "Transparent background",
         "es-ES": "Fondo transparente",
+        "fr-FR": "Fond transparent",
+        "it-IT": "Sfondo trasparente",
+        "ja-JP": "背景の透過",
         "ko-KR": "투명 배경",
         "pl-PL": "Przezroczyste tło",
         "pt-BR": "Fundo transparente",
         "ru-RU": "Прозрачный фон",
         "tr-TR": "Saydam arka plan",
+        "uk-UA": "Прозоре тло",
         "vi-VN": "Trong suốt màu nền",
         "zh-CN": "透明背景",
     },
@@ -1140,35 +1873,109 @@ const Translations = {
         "de-DE": "Benutzeroberfläche",
         "en-US": "UI",
         "es-ES": "Interfaz de usuario",
+        "fr-FR": "Interface utilisateur",
+        "it-IT": "Interfaccia",
+        "ja-JP": "UI",
         "ko-KR": "UI",
         "pl-PL": "Interfejs",
         "pt-BR": "Interface",
         "ru-RU": "Интерфейс",
         "tr-TR": "Kullanıcı arayüzü",
+        "uk-UA": "Інтерфейс користувача",
         "vi-VN": "Giao diện",
         "zh-CN": "UI",
+    },
+    "unknown": {
+        "de-DE": "Unbekannt",
+        "en-US": "Unknown",
+        "es-ES": "Desconocido",
+        "it-IT": "Sconosciuto",
+        "ja-JP": "不明",
+        "pl-PL": "Nieznane",
+        "pt-BR": "Desconhecido",
+        "ru-RU": "Неизвестный",
+        "tr-TR": "Bilinmiyor",
+        "uk-UA": "Невідомий",
+        "vi-VN": "Không rõ",
+        "zh-CN": "未知",
+    },
+    "unlimited": {
+        "de-DE": "Unbegrenzt",
+        "en-US": "Unlimited",
+        "es-ES": "Ilimitado",
+        "it-IT": "Illimitato",
+        "ja-JP": "無制限",
+        "pl-PL": "Bez ograniczeń",
+        "pt-BR": "Ilimitado",
+        "ru-RU": "Неограничено",
+        "tr-TR": "Limitsiz",
+        "uk-UA": "Необмежено",
+        "vi-VN": "Không giới hạn",
+    },
+    "unmuted": {
+        "de-DE": "Ton an",
+        "en-US": "Unmuted",
+        "es-ES": "Activar sonido",
+        "it-IT": "Microfono attivato",
+        "ja-JP": "ミュート解除",
+        "pl-PL": "Wyciszenie wyłączone",
+        "pt-BR": "Sem Mudo",
+        "ru-RU": "Вкл микрофон",
+        "tr-TR": "Açık",
+        "uk-UA": "Увімкнути звук",
+        "vi-VN": "Đã mở âm",
+        "zh-CN": "已取消静音",
+    },
+    "use-mouse-absolute-position": {
+        "de-DE": "Absolute Position der Maus verwenden",
+        "en-US": "Use mouse's absolute position",
+        "es-ES": "Usar la posición absoluta del ratón",
+        "ja-JP": "マウスの絶対座標を使用",
+        "pl-PL": "Użyj pozycji bezwzględnej myszy",
+        "pt-BR": "Usar posição absoluta do mouse",
+        "ru-RU": "Использовать абсолютное положение мыши",
+        "tr-TR": "Farenin mutlak pozisyonunu baz al",
+        "uk-UA": "Використовувати абсолютне положення миші",
+        "vi-VN": "Sử dụng vị trí tuyệt đối của chuột",
     },
     "user-agent-profile": {
         "de-DE": "User-Agent Profil",
         "en-US": "User-Agent profile",
         "es-ES": "Perfil del agente de usuario",
+        "fr-FR": "Profil de l'agent utilisateur",
+        "it-IT": "User-Agent",
+        "ja-JP": "ユーザーエージェントプロファイル",
         "ko-KR": "사용자 에이전트 프로파일",
         "pl-PL": "Profil User-Agent",
         "pt-BR": "Perfil do User-Agent",
         "ru-RU": "Профиль устройства",
         "tr-TR": "Kullanıcı aracısı profili",
+        "uk-UA": "Профіль User-Agent",
         "vi-VN": "User-Agent",
         "zh-CN": "浏览器UA伪装",
+    },
+    "vibration-intensity": {
+        "de-DE": "Vibrationsstärke",
+        "en-US": "Vibration intensity",
+        "ja-JP": "振動の強さ",
+        "pt-BR": "Intensidade da vibração",
+        "ru-RU": "Сила вибрации",
+        "tr-TR": "Titreşim gücü",
+        "vi-VN": "Cường độ rung",
     },
     "video": {
         "de-DE": "Video",
         "en-US": "Video",
         "es-ES": "Video",
+        "fr-FR": "Vidéo",
+        "it-IT": "Video",
+        "ja-JP": "映像",
         "ko-KR": "비디오",
         "pl-PL": "Obraz",
         "pt-BR": "Vídeo",
         "ru-RU": "Видео",
         "tr-TR": "Görüntü",
+        "uk-UA": "Відео",
         "vi-VN": "Hình ảnh",
         "zh-CN": "视频",
     },
@@ -1176,11 +1983,15 @@ const Translations = {
         "de-DE": "Bildqualität",
         "en-US": "Visual quality",
         "es-ES": "Calidad visual",
+        "fr-FR": "Qualité visuelle",
+        "it-IT": "Profilo codec preferito",
+        "ja-JP": "画質",
         "ko-KR": "시각적 품질",
         "pl-PL": "Jakość grafiki",
         "pt-BR": "Qualidade visual",
         "ru-RU": "Качество видеопотока",
         "tr-TR": "Görüntü kalitesi",
+        "uk-UA": "Візуальна якість",
         "vi-VN": "Chất lượng hình ảnh",
         "zh-CN": "画质",
     },
@@ -1188,11 +1999,15 @@ const Translations = {
         "de-DE": "Hoch",
         "en-US": "High",
         "es-ES": "Alto",
+        "fr-FR": "Élevée",
+        "it-IT": "Alta",
+        "ja-JP": "高",
         "ko-KR": "높음",
         "pl-PL": "Wysoka",
         "pt-BR": "Alto",
         "ru-RU": "Высокое",
         "tr-TR": "Yüksek",
+        "uk-UA": "Високий",
         "vi-VN": "Cao",
         "zh-CN": "高",
     },
@@ -1200,11 +2015,15 @@ const Translations = {
         "de-DE": "Niedrig",
         "en-US": "Low",
         "es-ES": "Bajo",
+        "fr-FR": "Basse",
+        "it-IT": "Bassa",
+        "ja-JP": "低",
         "ko-KR": "낮음",
         "pl-PL": "Niska",
         "pt-BR": "Baixo",
         "ru-RU": "Низкое",
         "tr-TR": "Düşük",
+        "uk-UA": "Низький",
         "vi-VN": "Thấp",
         "zh-CN": "低",
     },
@@ -1212,11 +2031,15 @@ const Translations = {
         "de-DE": "Mittel",
         "en-US": "Normal",
         "es-ES": "Normal",
+        "fr-FR": "Normal",
+        "it-IT": "Normale",
+        "ja-JP": "中",
         "ko-KR": "보통",
         "pl-PL": "Normalna",
         "pt-BR": "Normal",
         "ru-RU": "Среднее",
         "tr-TR": "Normal",
+        "uk-UA": "Нормальний",
         "vi-VN": "Thường",
         "zh-CN": "中",
     },
@@ -1224,11 +2047,15 @@ const Translations = {
         "de-DE": "Lautstärke",
         "en-US": "Volume",
         "es-ES": "Volumen",
+        "fr-FR": "Volume",
+        "it-IT": "Volume",
+        "ja-JP": "音量",
         "ko-KR": "음량",
         "pl-PL": "Głośność",
         "pt-BR": "Volume",
         "ru-RU": "Громкость",
         "tr-TR": "Ses düzeyi",
+        "uk-UA": "Гучність",
         "vi-VN": "Âm lượng",
         "zh-CN": "音量",
     },
@@ -1236,11 +2063,15 @@ const Translations = {
         "de-DE": "Countdown",
         "en-US": "Countdown",
         "es-ES": "Cuenta Regresiva",
+        "fr-FR": "Compte à rebours",
+        "it-IT": "Countdown",
+        "ja-JP": "カウントダウン",
         "ko-KR": "카운트다운",
         "pl-PL": "Pozostały czas oczekiwania",
         "pt-BR": "Contagem regressiva",
         "ru-RU": "Время до запуска",
         "tr-TR": "Geri sayım",
+        "uk-UA": "Зворотній відлік",
         "vi-VN": "Đếm ngược",
         "zh-CN": "倒计时",
     },
@@ -1248,11 +2079,15 @@ const Translations = {
         "de-DE": "Geschätzte Endzeit",
         "en-US": "Estimated finish time",
         "es-ES": "Tiempo estimado de finalización",
+        "fr-FR": "Temps estimé avant la fin",
+        "it-IT": "Tempo residuo stimato",
+        "ja-JP": "推定完了時間",
         "ko-KR": "예상 완료 시간",
         "pl-PL": "Szacowany czas zakończenia",
         "pt-BR": "Tempo estimado de conclusão",
         "ru-RU": "Примерное время запуска",
         "tr-TR": "Tahminî bitiş süresi",
+        "uk-UA": "Розрахунковий час завершення",
         "vi-VN": "Thời gian hoàn thành dự kiến",
         "zh-CN": "预计等待时间",
     },
@@ -1307,6 +2142,7 @@ window.addEventListener('load', e => {
 
 
 const SERVER_REGIONS = {};
+var IS_PLAYING = false;
 var STREAM_WEBRTC;
 var STREAM_AUDIO_CONTEXT;
 var STREAM_AUDIO_GAIN_NODE;
@@ -1315,6 +2151,9 @@ var $SCREENSHOT_CANVAS;
 var GAME_TITLE_ID;
 var APP_CONTEXT;
 
+let IS_REMOTE_PLAYING;
+let REMOTE_PLAY_CONFIG;
+
 const HAS_TOUCH_SUPPORT = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
 // Credit: https://phosphoricons.com
@@ -1322,6 +2161,268 @@ const ICON_VIDEO_SETTINGS = '<path d="M16 9.144A6.89 6.89 0 0 0 9.144 16 6.89 6.
 const ICON_STREAM_STATS = '<path d="M27.295 9.31C24.303 6.313 20.234 4.631 16 4.643h-.057C7.153 4.673 0 11.929 0 20.804v3.267a2.3 2.3 0 0 0 2.286 2.286h27.429A2.3 2.3 0 0 0 32 24.072v-3.429A15.9 15.9 0 0 0 27.294 9.31zm2.419 14.761H14.816l7.823-10.757a1.15 1.15 0 0 0-.925-1.817c-.366 0-.71.176-.925.471l-8.801 12.103H2.286v-3.267c0-.44.022-.874.062-1.304h3.367a1.15 1.15 0 0 0 1.143-1.143 1.15 1.15 0 0 0-1.143-1.143H2.753c1.474-5.551 6.286-9.749 12.104-10.237v3.379A1.15 1.15 0 0 0 16 11.5a1.15 1.15 0 0 0 1.143-1.143V6.975c5.797.488 10.682 4.608 12.143 10.239h-3a1.15 1.15 0 0 0-1.143 1.143 1.15 1.15 0 0 0 1.143 1.143h3.382a14.58 14.58 0 0 1 .047 1.143v3.429z" fill-rule="nonzero"/>';
 const ICON_SCREENSHOT_B64 = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDMyIDMyIiBmaWxsPSIjZmZmIj48cGF0aCBkPSJNMjguMzA4IDUuMDM4aC00LjI2NWwtMi4wOTctMy4xNDVhMS4yMyAxLjIzIDAgMCAwLTEuMDIzLS41NDhoLTkuODQ2YTEuMjMgMS4yMyAwIDAgMC0xLjAyMy41NDhMNy45NTYgNS4wMzhIMy42OTJBMy43MSAzLjcxIDAgMCAwIDAgOC43MzF2MTcuMjMxYTMuNzEgMy43MSAwIDAgMCAzLjY5MiAzLjY5MmgyNC42MTVBMy43MSAzLjcxIDAgMCAwIDMyIDI1Ljk2MlY4LjczMWEzLjcxIDMuNzEgMCAwIDAtMy42OTItMy42OTJ6bS02Ljc2OSAxMS42OTJjMCAzLjAzOS0yLjUgNS41MzgtNS41MzggNS41MzhzLTUuNTM4LTIuNS01LjUzOC01LjUzOCAyLjUtNS41MzggNS41MzgtNS41MzggNS41MzggMi41IDUuNTM4IDUuNTM4eiIvPjwvc3ZnPgo=';
 const ICON_STREAM_MUTE = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256"><path d="M53.92,34.62A8,8,0,1,0,42.08,45.38L73.55,80H32A16,16,0,0,0,16,96v64a16,16,0,0,0,16,16H77.25l69.84,54.31A8,8,0,0,0,160,224V175.09l42.08,46.29a8,8,0,1,0,11.84-10.76ZM32,96H72v64H32ZM144,207.64,88,164.09V95.89l56,61.6Zm42-63.77a24,24,0,0,0,0-31.72,8,8,0,1,1,12-10.57,40,40,0,0,1,0,52.88,8,8,0,0,1-12-10.59Zm-80.16-76a8,8,0,0,1,1.4-11.23l39.85-31A8,8,0,0,1,160,32v74.83a8,8,0,0,1-16,0V48.36l-26.94,21A8,8,0,0,1,105.84,67.91ZM248,128a79.9,79.9,0,0,1-20.37,53.34,8,8,0,0,1-11.92-10.67,64,64,0,0,0,0-85.33,8,8,0,1,1,11.92-10.67A79.83,79.83,0,0,1,248,128Z"></path></svg>';
+
+class Dialog {
+    constructor(title, className, $content, onClose) {
+        const CE = createElement;
+
+        // Create dialog overlay
+        this.$overlay = document.querySelector('.bx-dialog-overlay');
+        if (!this.$overlay) {
+            this.$overlay = CE('div', {'class': 'bx-dialog-overlay bx-gone'});
+            document.documentElement.appendChild(this.$overlay);
+        }
+
+        let $close;
+        this.onClose = onClose;
+        this.$dialog = CE('div', {'class': `bx-dialog ${className} bx-gone`},
+                                    CE('b', {}, title),
+                                    CE('div', {'class': 'bx-dialog-content'}, $content),
+                                    $close = CE('button', {}, __('close')));
+
+        $close.addEventListener('click', e => {
+            this.hide(e);
+        });
+        document.documentElement.appendChild(this.$dialog);
+    }
+
+    show() {
+        this.$dialog.classList.remove('bx-gone');
+        this.$overlay.classList.remove('bx-gone');
+    }
+
+    hide(e) {
+        this.$dialog.classList.add('bx-gone');
+        this.$overlay.classList.add('bx-gone');
+        this.onClose && this.onClose(e);
+    }
+
+    toggle() {
+        this.$dialog.classList.toggle('bx-gone');
+        this.$overlay.classList.toggle('bx-gone');
+    }
+}
+
+
+class RemotePlay {
+    static XCLOUD_TOKEN;
+    static XHOME_TOKEN;
+    static #CONSOLES;
+
+    static #STATE_LABELS = {
+        'On': __('powered-on'),
+        'Off': __('powered-off'),
+        'ConnectedStandby': __('standby'),
+        'Unknown': __('unknown'),
+    };
+
+    static get BASE_DEVICE_INFO() {
+        return {
+            appInfo: {
+                env: {
+                    clientAppId: window.location.host,
+                    clientAppType: 'browser',
+                    clientAppVersion: '21.1.98',
+                    clientSdkVersion: '8.5.3',
+                    httpEnvironment: 'prod',
+                    sdkInstallId: '',
+                },
+            },
+            dev: {
+                displayInfo: {
+                    dimensions: {
+                        widthInPixels: 1920,
+                        heightInPixels: 1080,
+                    },
+                    pixelDensity: {
+                        dpiX: 1,
+                        dpiY: 1,
+                    },
+                },
+                hw: {
+                    make: 'Microsoft',
+                    model: 'unknown',
+                    sdktype: 'web',
+                },
+                os: {
+                    name: 'windows',
+                    ver: '22631.2715',
+                    platform: 'desktop',
+                },
+                browser: {
+                    browserName: 'chrome',
+                    browserVersion: '119.0',
+                },
+            },
+        };
+    }
+
+    static #dialog;
+    static #$content;
+    static #$consoles;
+
+    static #initialize() {
+        if (RemotePlay.#$content) {
+            return;
+        }
+
+        const CE = createElement;
+
+        RemotePlay.#$content = CE('div', {}, __('getting-consoles-list'));
+        RemotePlay.#dialog = new Dialog(__('remote-play'), '', RemotePlay.#$content);
+
+        RemotePlay.#getXhomeToken(() => {
+            RemotePlay.#getConsolesList(() => {
+                console.log(RemotePlay.#CONSOLES);
+                RemotePlay.#renderConsoles();
+            });
+        });
+    }
+
+    static #renderConsoles() {
+        const CE = createElement;
+
+        const $fragment = document.createDocumentFragment();
+
+        if (!RemotePlay.#CONSOLES || RemotePlay.#CONSOLES.length === 0) {
+            $fragment.appendChild(CE('span', {}, __('no-consoles-found')));
+        } else {
+            const $settingNote = CE('p', {});
+
+            const resolutions = [1080, 720];
+            const currentResolution = PREFS.get(Preferences.REMOTE_PLAY_RESOLUTION);
+            const $resolutionSelect = CE('select', {});
+            for (const resolution of resolutions) {
+                const value = `${resolution}p`;
+
+                const $option = CE('option', {'value': value}, value);
+                if (currentResolution === value) {
+                    $option.selected = true;
+                }
+
+                $resolutionSelect.appendChild($option);
+            }
+            $resolutionSelect.addEventListener('change', e => {
+                const value = $resolutionSelect.value;
+
+                $settingNote.textContent = value === '1080p' ? '✅ ' + __('can-stream-xbox-360-games') : '❌ ' + __('cant-stream-xbox-360-games');
+                PREFS.set(Preferences.REMOTE_PLAY_RESOLUTION, value);
+            });
+            $resolutionSelect.dispatchEvent(new Event('change'));
+
+            const $qualitySettings = CE('div', {'class': 'bx-remote-play-settings'},
+                CE('div', {},
+                    CE('label', {}, __('target-resolution'), $settingNote),
+                    $resolutionSelect,
+                )
+            );
+
+            $fragment.appendChild($qualitySettings);
+        }
+
+        for (let con of RemotePlay.#CONSOLES) {
+            let $connectButton;
+            const $child = CE('div', {'class': 'bx-remote-play-device-wrapper'},
+                CE('div', {'class': 'bx-remote-play-device-info'},
+                    CE('div', {},
+                        CE('span', {'class': 'bx-remote-play-device-name'}, con.deviceName),
+                        CE('span', {'class': 'bx-remote-play-console-type'}, con.consoleType)
+                    ),
+                    CE('div', {'class': 'bx-remote-play-power-state'}, RemotePlay.#STATE_LABELS[con.powerState]),
+                ),
+                $connectButton = CE('button', {'class': 'bx-primary-button bx-no-margin'}, __('console-connect')),
+            );
+
+            $connectButton.addEventListener('click', e => {
+                REMOTE_PLAY_CONFIG = {
+                    serverId: con.serverId,
+                };
+                window.BX_REMOTE_PLAY_CONFIG = REMOTE_PLAY_CONFIG;
+
+                const url = window.location.href.substring(0, 31) + '/launch/fortnite/BT5P2X999VH2#remote-play';
+
+                const $pageContent = document.getElementById('PageContent');
+                const $anchor = CE('a', {href: url, class: 'bx-hidden', style: 'position:absolute;top:-9990px;left:-9999px'}, '');
+                $anchor.addEventListener('click', e => {
+                    setTimeout(() => {
+                        $pageContent.removeChild($anchor);
+                    }, 1000);
+                });
+
+                $pageContent.appendChild($anchor);
+                $anchor.click();
+
+                RemotePlay.#dialog.hide();
+            });
+            $fragment.appendChild($child);
+        }
+
+        RemotePlay.#$content.parentElement.replaceChild($fragment, RemotePlay.#$content);
+    }
+
+    static detect() {
+        if (!PREFS.get(Preferences.REMOTE_PLAY_ENABLED)) {
+            return;
+        }
+
+        IS_REMOTE_PLAYING = window.location.pathname.includes('/launch/') && window.location.hash.startsWith('#remote-play');
+        if (IS_REMOTE_PLAYING) {
+            window.BX_REMOTE_PLAY_CONFIG = REMOTE_PLAY_CONFIG;
+            // Remove /launch/... from URL
+            window.history.replaceState({origin: 'better-xcloud'}, '', 'https://www.xbox.com/' + location.pathname.substring(1, 6) + '/play');
+        } else {
+            window.BX_REMOTE_PLAY_CONFIG = null;
+        }
+    }
+
+    static #getXhomeToken(callback) {
+        if (RemotePlay.XHOME_TOKEN) {
+            callback();
+            return;
+        }
+
+        const GSSV_TOKEN = JSON.parse(localStorage.getItem('xboxcom_xbl_user_info')).tokens['http://gssv.xboxlive.com/'].token;
+
+        fetch('https://xhome.gssv-play-prod.xboxlive.com/v2/login/user', {
+            method: 'POST',
+            body: JSON.stringify({
+                offeringId: 'xhome',
+                token: GSSV_TOKEN,
+            }),
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+            },
+        }).then(resp => resp.json())
+            .then(json => {
+                RemotePlay.XHOME_TOKEN = json.gsToken;
+                callback();
+            });
+    }
+
+    static #getConsolesList(callback) {
+        if (RemotePlay.#CONSOLES) {
+            callback();
+            return;
+        }
+
+        fetch('https://wus2.gssv-play-prodxhome.xboxlive.com/v6/servers/home?mr=50', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${RemotePlay.XHOME_TOKEN}`,
+            },
+        }).then(resp => resp.json())
+            .then(json => {
+                RemotePlay.#CONSOLES = json.results;
+                callback();
+            });
+    }
+
+    static showDialog() {
+        RemotePlay.#initialize();
+        RemotePlay.#dialog.show();
+    }
+}
+
 
 class TitlesInfo {
     static #INFO = {};
@@ -1337,11 +2438,11 @@ class TitlesInfo {
 
     static saveFromTitleInfo(titleInfo) {
         const details = titleInfo.details;
-        TitlesInfo.#INFO[details.productId] = {
+        TitlesInfo.update(details.productId, {
             titleId: titleInfo.titleId,
             // Has more than one input type -> must have touch support
             hasTouchSupport: (details.supportedInputTypes.length > 1),
-        };
+        });
     }
 
     static saveFromCatalogInfo(catalogInfo) {
@@ -1570,6 +2671,8 @@ class TouchController {
     }
 
     static #$bar;
+    static #$style;
+
     static #enable = false;
     static #showing = false;
     static #dataChannel;
@@ -1614,6 +2717,7 @@ class TouchController {
         TouchController.#dataChannel = null;
 
         TouchController.#$bar && TouchController.#$bar.removeAttribute('data-showing');
+        TouchController.#$style && (TouchController.#$style.textContent = '');
     }
 
     static #dispatchMessage(msg) {
@@ -1646,6 +2750,7 @@ class TouchController {
         });
 
         TouchController.#$bar = $bar;
+        TouchController.#$style = $style;
 
         const PREF_STYLE_STANDARD = PREFS.get(Preferences.STREAM_TOUCH_CONTROLLER_STYLE_STANDARD);
         const PREF_STYLE_CUSTOM = PREFS.get(Preferences.STREAM_TOUCH_CONTROLLER_STYLE_CUSTOM);
@@ -1695,6 +2800,305 @@ class TouchController {
         };
     }
 }
+
+
+class Toast {
+    static #$wrapper;
+    static #$msg;
+    static #$status;
+
+    static setup() {
+        Toast.#$wrapper = createElement('div', {'class': 'bx-toast bx-gone'},
+                                        Toast.#$msg = createElement('span', {'class': 'bx-toast-msg'}),
+                                        Toast.#$status = createElement('span', {'class': 'bx-toast-status'}));
+
+        document.documentElement.appendChild(Toast.#$wrapper);
+    }
+}
+
+class GamepadHandler {
+    static #BUTTON_A = 0;
+    static #BUTTON_B = 1;
+    static #BUTTON_X = 2;
+    static #BUTTON_Y = 3;
+
+    static #BUTTON_UP = 12;
+    static #BUTTON_DOWN = 13;
+    static #BUTTON_LEFT = 14;
+    static #BUTTON_RIGHT = 15;
+
+    static #BUTTON_LB = 4;
+    static #BUTTON_LT = 6;
+    static #BUTTON_RB = 5;
+    static #BUTTON_RT = 7;
+
+    static #BUTTON_SELECT = 8;
+    static #BUTTON_START = 9;
+    static #BUTTON_HOME = 16;
+
+    static #isPolling = false;
+    static #pollingInterval;
+    static #isHoldingHome = false;
+    static #buttonsCache = [];
+    static #buttonsStatus = [];
+
+    static #emulatedGamepads = [null, null, null, null];
+    static #nativeGetGamepads = window.navigator.getGamepads.bind(window.navigator);
+
+    static #cloneGamepad(gamepad) {
+        const buttons = Array(gamepad.buttons.length).fill({pressed: false, value: 0});
+        buttons[GamepadHandler.#BUTTON_HOME] = {
+            pressed: true,
+            value: 0,
+        };
+
+        return {
+            timestamp: gamepad.timestamp,
+            id: gamepad.id,
+            index: gamepad.index,
+            connected: gamepad.connected,
+            mapping: gamepad.mapping,
+            axes: [0, 0, 0, 0],
+            buttons: buttons,
+        };
+    }
+
+    static #customGetGamepads() {
+        return GamepadHandler.#emulatedGamepads;
+    }
+
+    static #isPressed(buttonIndex) {
+        return !GamepadHandler.#buttonsCache[buttonIndex] && GamepadHandler.#buttonsStatus[buttonIndex];
+    }
+
+    static #poll() {
+        // Move the buttons status from the previous frame to the cache
+        GamepadHandler.#buttonsCache = GamepadHandler.#buttonsStatus.slice(0);
+        // Clear the buttons status
+        GamepadHandler.#buttonsStatus = [];
+
+        const pressed = [];
+        const timestamps = [0, 0, 0, 0];
+        GamepadHandler.#nativeGetGamepads().forEach(gamepad => {
+            if (!gamepad || gamepad.mapping !== 'standard' || !gamepad.buttons) {
+                return;
+            }
+
+            gamepad.buttons.forEach((button, index) => {
+                // Only add the newly pressed button to the array (holding doesn't count)
+                if (button.pressed) {
+                    timestamps[index] = gamepad.timestamp;
+                    pressed[index] = true;
+                }
+            });
+        });
+
+        GamepadHandler.#buttonsStatus = pressed;
+        GamepadHandler.#isHoldingHome = !!pressed[GamepadHandler.#BUTTON_HOME];
+
+        if (GamepadHandler.#isHoldingHome) {
+            // Update timestamps
+            GamepadHandler.#emulatedGamepads.forEach(gamepad => {
+                gamepad && (gamepad.timestamp = timestamps[gamepad.index]);
+            });
+
+            // Patch getGamepads()
+            window.navigator.getGamepads = GamepadHandler.#customGetGamepads;
+
+            // Check pressed button
+            if (GamepadHandler.#isPressed(GamepadHandler.#BUTTON_RB)) {
+                takeScreenshot();
+            } else if (GamepadHandler.#isPressed(GamepadHandler.#BUTTON_SELECT)) {
+                StreamStats.toggle();
+            }
+        } else {
+            // Restore to native getGamepads()
+            window.navigator.getGamepads = GamepadHandler.#nativeGetGamepads;
+        }
+    }
+
+    static initialSetup() {
+        window.addEventListener('gamepadconnected', e => {
+            const gamepad = e.gamepad;
+            console.log('Gamepad connected', gamepad);
+
+            GamepadHandler.#emulatedGamepads[gamepad.index] = GamepadHandler.#cloneGamepad(gamepad);
+            if (IS_PLAYING) {
+                GamepadHandler.startPolling();
+            }
+        });
+
+        window.addEventListener('gamepaddisconnected', e => {
+            console.log('Gamepad disconnected', e.gamepad);
+            GamepadHandler.#emulatedGamepads[e.gamepad.index] = null;
+
+            // No gamepads left
+            const noGamepads = GamepadHandler.#nativeGetGamepads().every(gamepad => gamepad === null);
+            if (noGamepads) {
+                GamepadHandler.stopPolling();
+            }
+        });
+    }
+
+    static startPolling() {
+        if (GamepadHandler.#isPolling) {
+            return;
+        }
+
+        GamepadHandler.stopPolling();
+
+        GamepadHandler.#isPolling = true;
+        GamepadHandler.#pollingInterval = setInterval(GamepadHandler.#poll, 50);
+    }
+
+    static stopPolling() {
+        GamepadHandler.#isPolling = false;
+        GamepadHandler.#isHoldingHome = false;
+        GamepadHandler.#pollingInterval && clearInterval(GamepadHandler.#pollingInterval);
+        GamepadHandler.#pollingInterval = null;
+    }
+}
+
+
+class VibrationManager {
+    static #playDeviceVibration(data) {
+        // console.log(+new Date, data);
+
+        const intensity = Math.min(100, data.leftMotorPercent + data.rightMotorPercent / 2) * window.BX_VIBRATION_INTENSITY;
+        if (intensity === 0 || intensity === 100) {
+            // Stop vibration
+            window.navigator.vibrate(intensity ? data.durationMs : 0);
+            return;
+        }
+
+        const pulseDuration = 200;
+        const onDuration = Math.floor(pulseDuration * intensity / 100);
+        const offDuration = pulseDuration - onDuration;
+
+        const repeats = Math.ceil(data.durationMs / pulseDuration);
+
+        const pulses = Array(repeats).fill([onDuration, offDuration]).flat();
+        // console.log(pulses);
+
+        window.navigator.vibrate(pulses);
+    }
+
+    static supportControllerVibration() {
+        return Gamepad.prototype.hasOwnProperty('vibrationActuator');
+    }
+
+    static supportDeviceVibration() {
+        return !!window.navigator.vibrate;
+    }
+
+    static updateGlobalVars() {
+        window.BX_ENABLE_CONTROLLER_VIBRATION = VibrationManager.supportControllerVibration() ? PREFS.get(Preferences.CONTROLLER_ENABLE_VIBRATION) : false;
+        window.BX_VIBRATION_INTENSITY = PREFS.get(Preferences.CONTROLLER_VIBRATION_INTENSITY) / 100;
+
+        if (!VibrationManager.supportDeviceVibration()) {
+            window.BX_ENABLE_DEVICE_VIBRATION = false;
+            return;
+        }
+
+        // Stop vibration
+        window.navigator.vibrate(0);
+
+        const value = PREFS.get(Preferences.CONTROLLER_DEVICE_VIBRATION);
+        let enabled;
+
+        if (value === 'on') {
+            enabled = true;
+        } else if (value === 'auto') {
+            enabled = true;
+            const gamepads = window.navigator.getGamepads();
+            for (const gamepad of gamepads) {
+                if (gamepad) {
+                    enabled = false;
+                    break;
+                }
+            }
+        } else {
+            enabled = false;
+        }
+
+        window.BX_ENABLE_DEVICE_VIBRATION = enabled;
+    }
+
+    static initialSetup() {
+        window.addEventListener('gamepadconnected', VibrationManager.updateGlobalVars);
+        window.addEventListener('gamepaddisconnected', VibrationManager.updateGlobalVars);
+
+        VibrationManager.updateGlobalVars();
+
+        const orgCreateDataChannel = RTCPeerConnection.prototype.createDataChannel;
+        RTCPeerConnection.prototype.createDataChannel = function() {
+            const dataChannel = orgCreateDataChannel.apply(this, arguments);
+            if (dataChannel.label !== 'input') {
+                return dataChannel;
+            }
+
+            const VIBRATION_DATA_MAP = {
+                'gamepadIndex': 8,
+                'leftMotorPercent': 8,
+                'rightMotorPercent': 8,
+                'leftTriggerMotorPercent': 8,
+                'rightTriggerMotorPercent': 8,
+                'durationMs': 16,
+                // 'delayMs': 16,
+                // 'repeat': 8,
+            };
+
+            dataChannel.addEventListener('message', e => {
+                if (!window.BX_ENABLE_DEVICE_VIBRATION) {
+                    return;
+                }
+
+                if (typeof e !== 'object' || !(e.data instanceof ArrayBuffer)) {
+                    return;
+                }
+
+                const dataView = new DataView(e.data);
+                let offset = 0;
+
+                let messageType;
+                if (dataView.byteLength === 13) { // version >= 8
+                    messageType = dataView.getUint16(offset, true);
+                    offset += Uint16Array.BYTES_PER_ELEMENT;
+                } else {
+                    messageType = dataView.getUint8(offset);
+                    offset += Uint8Array.BYTES_PER_ELEMENT;
+                }
+
+                if (!(messageType & 128)) { // Vibration
+                    return;
+                }
+
+                const vibrationType = dataView.getUint8(offset);
+                offset += Uint8Array.BYTES_PER_ELEMENT;
+
+                if (vibrationType !== 0) { // FourMotorRumble
+                    return;
+                }
+
+                const data = {};
+                for (const key in VIBRATION_DATA_MAP) {
+                    if (VIBRATION_DATA_MAP[key] === 16) {
+                        data[key] = dataView.getUint16(offset, true);
+                        offset += Uint16Array.BYTES_PER_ELEMENT;
+                    } else {
+                        data[key] = dataView.getUint8(offset);
+                        offset += Uint8Array.BYTES_PER_ELEMENT;
+                    }
+                }
+
+                VibrationManager.#playDeviceVibration(data);
+            });
+
+            return dataChannel;
+        };
+    }
+}
+
 
 class MouseCursorHider {
     static #timeout;
@@ -1819,7 +3223,7 @@ class StreamBadges {
         let totalIn = 0;
         let totalOut = 0;
         stats.forEach(stat => {
-            if (stat.type === 'candidate-pair' && stat.state == 'succeeded') {
+            if (stat.type === 'candidate-pair' && stat.packetsReceived > 0 && stat.state === 'succeeded') {
                 totalIn += stat.bytesReceived;
                 totalOut += stat.bytesSent;
             }
@@ -1960,8 +3364,6 @@ class StreamStats {
     static #$fl;
     static #$br;
 
-    static #$settings;
-
     static #lastStat;
 
     static #quickGlanceObserver;
@@ -1986,8 +3388,10 @@ class StreamStats {
         StreamStats.#interval = null;
         StreamStats.#lastStat = null;
 
-        StreamStats.#$container.removeAttribute('data-display');
-        StreamStats.#$container.classList.add('bx-gone');
+        if (StreamStats.#$container) {
+            StreamStats.#$container.removeAttribute('data-display');
+            StreamStats.#$container.classList.add('bx-gone');
+        }
     }
 
     static toggle() {
@@ -2004,8 +3408,8 @@ class StreamStats {
         StreamStats.hideSettingsUi();
     }
 
-    static isHidden = () => StreamStats.#$container.classList.contains('bx-gone');
-    static isGlancing = () => StreamStats.#$container.getAttribute('data-display') === 'glancing';
+    static isHidden = () => StreamStats.#$container && StreamStats.#$container.classList.contains('bx-gone');
+    static isGlancing = () => StreamStats.#$container && StreamStats.#$container.getAttribute('data-display') === 'glancing';
 
     static quickGlanceSetup() {
         if (StreamStats.#quickGlanceObserver) {
@@ -2084,7 +3488,7 @@ class StreamStats {
                     }
 
                     StreamStats.#lastStat = stat;
-                } else if (stat.type === 'candidate-pair' && stat.state === 'succeeded') {
+                } else if (stat.type === 'candidate-pair' && stat.packetsReceived > 0 && stat.state === 'succeeded') {
                     // Round Trip Time
                     const roundTripTime = typeof stat.currentRoundTripTime !== 'undefined' ? stat.currentRoundTripTime * 1000 : '???';
                     StreamStats.#$ping.textContent = roundTripTime;
@@ -2098,30 +3502,25 @@ class StreamStats {
         });
     }
 
-    static #refreshStyles() {
+    static refreshStyles() {
         const PREF_ITEMS = PREFS.get(Preferences.STATS_ITEMS);
         const PREF_POSITION = PREFS.get(Preferences.STATS_POSITION);
         const PREF_TRANSPARENT = PREFS.get(Preferences.STATS_TRANSPARENT);
         const PREF_OPACITY = PREFS.get(Preferences.STATS_OPACITY);
         const PREF_TEXT_SIZE = PREFS.get(Preferences.STATS_TEXT_SIZE);
 
-        StreamStats.#$container.setAttribute('data-stats', '[' + PREF_ITEMS.join('][') + ']');
-        StreamStats.#$container.setAttribute('data-position', PREF_POSITION);
-        StreamStats.#$container.setAttribute('data-transparent', PREF_TRANSPARENT);
-        StreamStats.#$container.style.opacity = PREF_OPACITY + '%';
-        StreamStats.#$container.style.fontSize = PREF_TEXT_SIZE;
+        const $container = StreamStats.#$container;
+        $container.setAttribute('data-stats', '[' + PREF_ITEMS.join('][') + ']');
+        $container.setAttribute('data-position', PREF_POSITION);
+        $container.setAttribute('data-transparent', PREF_TRANSPARENT);
+        $container.style.opacity = PREF_OPACITY + '%';
+        $container.style.fontSize = PREF_TEXT_SIZE;
     }
 
     static hideSettingsUi() {
-        StreamStats.#$settings.classList.add('bx-gone');
-
         if (StreamStats.isGlancing() && !PREFS.get(Preferences.STATS_QUICK_GLANCE)) {
             StreamStats.stop();
         }
-    }
-
-    static #toggleSettingsUi() {
-        StreamStats.#$settings.classList.toggle('bx-gone');
     }
 
     static render() {
@@ -2146,86 +3545,9 @@ class StreamStats {
         }
 
         StreamStats.#$container = CE('div', {'class': 'bx-stats-bar bx-gone'}, $barFragment);
-
-        let clickTimeout;
-        StreamStats.#$container.addEventListener('mousedown', e => {
-            clearTimeout(clickTimeout);
-            if (clickTimeout) {
-                // Double-clicked
-                clickTimeout = null;
-                StreamStats.#toggleSettingsUi();
-                return;
-            }
-
-            clickTimeout = setTimeout(() => {
-                clickTimeout = null;
-            }, 400);
-        });
-
         document.documentElement.appendChild(StreamStats.#$container);
 
-        const refreshFunc = e => {
-            StreamStats.#refreshStyles()
-        };
-
-        let $close;
-
-
-        const STATS_UI = {
-            [Preferences.STATS_SHOW_WHEN_PLAYING]: {
-                'label': __('show-stats-on-startup'),
-            },
-            [Preferences.STATS_QUICK_GLANCE]: {
-                'label': __('enable-quick-glance-mode'),
-                'onChange': e => {
-                    e.target.checked ? StreamStats.quickGlanceSetup() : StreamStats.quickGlanceStop();
-                },
-            },
-            [Preferences.STATS_ITEMS]: {
-                'label': __('stats'),
-                'onChange': refreshFunc,
-            },
-            [Preferences.STATS_POSITION]: {
-                'label': __('position'),
-                'onChange': refreshFunc,
-            },
-            [Preferences.STATS_TEXT_SIZE]: {
-                'label': __('text-size'),
-                'onChange': refreshFunc,
-            },
-            [Preferences.STATS_OPACITY]: {
-                'label': `${__('opacity')} (50-100%)`,
-                'onChange': refreshFunc,
-            },
-            [Preferences.STATS_TRANSPARENT]: {
-                'label': __('transparent-background'),
-                'onChange': refreshFunc,
-            },
-            [Preferences.STATS_CONDITIONAL_FORMATTING]: {
-                'label': __('conditional-formatting'),
-                'onChange': refreshFunc,
-            },
-        };
-
-        const $fragment = document.createDocumentFragment();
-        for (let settingKey in STATS_UI) {
-            const setting = STATS_UI[settingKey];
-
-            $fragment.appendChild(CE('div', {},
-               CE('label', {'for': `xcloud_setting_${settingKey}`}, setting.label),
-               PREFS.toElement(settingKey, setting.onChange)
-            ));
-        }
-
-        StreamStats.#$settings = CE('div', {'class': 'bx-stats-settings bx-gone'},
-                                    CE('b', {}, __('stream-stats-settings')),
-                                    CE('div', {}, $fragment),
-                                    $close = CE('button', {}, __('close')));
-
-        $close.addEventListener('click', e => StreamStats.hideSettingsUi());
-        document.documentElement.appendChild(StreamStats.#$settings);
-
-        StreamStats.#refreshStyles();
+        StreamStats.refreshStyles();
     }
 }
 
@@ -2302,7 +3624,7 @@ class PreloadedState {
 
                 return this._state;
             },
-            set: (state) => {
+            set: state => {
                 this._state = state;
                 APP_CONTEXT = structuredClone(state.appContext);
 
@@ -2348,6 +3670,14 @@ class Preferences {
     static get STREAM_DISABLE_FEEDBACK_DIALOG() { return 'stream_disable_feedback_dialog'; }
     static get STREAM_ENABLE_READY_NOTIFICATION() { return 'stream_enable_ready_notification'; }
 
+    static get CONTROLLER_ENABLE_SHORTCUTS() { return 'controller_enable_shortcuts'; }
+    static get CONTROLLER_ENABLE_VIBRATION() { return 'controller_enable_vibration'; }
+    static get CONTROLLER_DEVICE_VIBRATION() { return 'controller_device_vibration'; }
+    static get CONTROLLER_VIBRATION_INTENSITY() { return 'controller_vibration_intensity'; }
+
+    static get MKB_ENABLED() { return 'mkb_enabled'; }
+    static get MKB_ABSOLUTE_MOUSE() { return 'mkb_absolute_mouse'; }
+
     static get SCREENSHOT_BUTTON_POSITION() { return 'screenshot_button_position'; }
     static get BLOCK_TRACKING() { return 'block_tracking'; }
     static get BLOCK_SOCIAL_FEATURES() { return 'block_social_features'; }
@@ -2359,6 +3689,8 @@ class Preferences {
     static get UI_LOADING_SCREEN_GAME_ART() { return 'ui_loading_screen_game_art'; }
     static get UI_LOADING_SCREEN_WAIT_TIME() { return 'ui_loading_screen_wait_time'; }
     static get UI_LOADING_SCREEN_ROCKET() { return 'ui_loading_screen_rocket'; }
+
+    static get UI_LAYOUT() { return 'ui_layout'; }
 
     static get VIDEO_CLARITY() { return 'video_clarity'; }
     static get VIDEO_RATIO() { return 'video_ratio' }
@@ -2380,6 +3712,9 @@ class Preferences {
     static get STATS_OPACITY() { return 'stats_opacity'; }
     static get STATS_CONDITIONAL_FORMATTING() { return 'stats_conditional_formatting'; }
 
+    static get REMOTE_PLAY_ENABLED() { return 'xhome_enabled'; }
+    static get REMOTE_PLAY_RESOLUTION() { return 'xhome_resolution'; }
+
     // Deprecated
     static get DEPRECATED_USE_DESKTOP_CODEC() { return 'use_desktop_codec'; }
 
@@ -2399,11 +3734,15 @@ class Preferences {
                 'de-DE': 'Deutsch',
                 'en-US': 'English (United States)',
                 'es-ES': 'espa\xf1ol (Espa\xf1a)',
+                'fr-FR': 'fran\xe7ais',
+                'it-IT': 'italiano',
+                'ja-JP': '\u65e5\u672c\u8a9e',
                 'ko-KR': '\ud55c\uad6d\uc5b4',
                 'pl-PL': 'polski',
                 'pt-BR': 'portugu\xeas (Brasil)',
                 'ru-RU': '\u0440\u0443\u0441\u0441\u043a\u0438\u0439',
                 'tr-TR': 'T\xfcrk\xe7e',
+                'uk-UA': 'українська',
                 'vi-VN': 'Tiếng Việt',
                 'zh-CN': '\u4e2d\u6587(\u7b80\u4f53)',
             },
@@ -2447,7 +3786,7 @@ class Preferences {
         [Preferences.STREAM_TARGET_RESOLUTION]: {
             'default': 'auto',
             'options': {
-                'auto': __('auto'),
+                'auto': __('default'),
                 '1080p': '1080p',
                 '720p': '720p',
             },
@@ -2567,9 +3906,43 @@ class Preferences {
         [Preferences.STREAM_ENABLE_READY_NOTIFICATION]: {
             'default': false,
         },
+
+        [Preferences.CONTROLLER_ENABLE_SHORTCUTS]: {
+            'default': false,
+        },
+
+        [Preferences.CONTROLLER_ENABLE_VIBRATION]: {
+            'default': true,
+        },
+
+        [Preferences.CONTROLLER_DEVICE_VIBRATION]: {
+            'default': 'off',
+            'options': {
+                'on': __('on'),
+                'auto': __('device-vibration-not-using-gamepad'),
+                'off': __('off'),
+            },
+        },
+
+        [Preferences.CONTROLLER_VIBRATION_INTENSITY]: {
+            'default': 100,
+            'min': 0,
+            'max': 100,
+            'steps': 10,
+        },
+
+        [Preferences.MKB_ENABLED]: {
+            'default': false,
+        },
+
+        [Preferences.MKB_ABSOLUTE_MOUSE]: {
+            'default': false,
+        },
+
         [Preferences.REDUCE_ANIMATIONS]: {
             'default': false,
         },
+
         [Preferences.UI_LOADING_SCREEN_GAME_ART]: {
             'default': true,
         },
@@ -2584,6 +3957,14 @@ class Preferences {
                 'hide': __('rocket-always-hide'),
             },
         },
+        [Preferences.UI_LAYOUT]: {
+            'default': 'default',
+            'options': {
+                'default': __('default'),
+                'tv': __('smart-tv'),
+            },
+        },
+
         [Preferences.BLOCK_SOCIAL_FEATURES]: {
             'default': false,
         },
@@ -2697,6 +4078,18 @@ class Preferences {
         },
         [Preferences.STATS_CONDITIONAL_FORMATTING]: {
             'default': false,
+        },
+
+        [Preferences.REMOTE_PLAY_ENABLED]: {
+            'default': false,
+        },
+
+        [Preferences.REMOTE_PLAY_RESOLUTION]: {
+            'default': '1080p',
+            'options': {
+                '1080p': '1080p',
+                '720p': '720p',
+            },
         },
 
         // Deprecated
@@ -2821,7 +4214,7 @@ class Preferences {
 
         let $control;
         if ('options' in setting) {
-            $control = CE('select', {'id': 'xcloud_setting_' + key});
+            $control = CE('select', {'id': `bx_setting_${key}`});
             for (let value in setting.options) {
                 const label = setting.options[value];
 
@@ -2831,11 +4224,12 @@ class Preferences {
 
             $control.value = currentValue;
             $control.addEventListener('change', e => {
-                PREFS.set(key, e.target.value);
+                const value = (setting.type && setting.type === 'number') ? parseInt(e.target.value) : e.target.value;
+                PREFS.set(key, value);
                 onChange && onChange(e);
             });
         } else if ('multiple_options' in setting) {
-            $control = CE('select', {'id': 'xcloud_setting_' + key, 'multiple': true});
+            $control = CE('select', {'id': `bx_setting_${key}`, 'multiple': true});
             for (let value in setting.multiple_options) {
                 const label = setting.multiple_options[value];
 
@@ -2877,7 +4271,7 @@ class Preferences {
                 let value = Math.max(setting.min, Math.min(setting.max, parseInt(e.target.value)));
                 e.target.value = value;
 
-                PREFS.set(key, e.target.value);
+                PREFS.set(key, value);
                 onChange && onChange(e);
             });
         } else {
@@ -2890,7 +4284,7 @@ class Preferences {
             });
         }
 
-        $control.id = `xcloud_setting_${key}`;
+        $control.id = `bx_setting_${key}`;
         return $control;
     }
 
@@ -2920,7 +4314,7 @@ class Preferences {
                            );
 
         if (!options.disabled && !options.hideSlider) {
-            $range = CE('input', {'type': 'range', 'min': MIN, 'max': MAX, 'value': value});
+            $range = CE('input', {'type': 'range', 'min': MIN, 'max': MAX, 'value': value, 'step': STEPS});
             $range.addEventListener('input', e => {
                 value = parseInt(e.target.value);
 
@@ -3014,6 +4408,322 @@ class Preferences {
 const PREFS = new Preferences();
 
 
+class Patcher {
+    static #PATCHES = {
+        // Disable ApplicationInsights.track() function
+        disableAiTrack: PREFS.get(Preferences.BLOCK_TRACKING) && function(funcStr) {
+            const text = '.track=function(';
+            const index = funcStr.indexOf(text);
+            if (index === -1) {
+                return false;
+            }
+
+            if (funcStr.substring(0, index + 200).includes('"AppInsightsCore')) {
+                return false;
+            }
+
+            return funcStr.substring(0, index) + '.track=function(e){},!!function(' + funcStr.substring(index + text.length);
+        },
+
+        // Set disableTelemetry() to true
+        disableTelemetry: PREFS.get(Preferences.BLOCK_TRACKING) && function(funcStr) {
+            const text = '.disableTelemetry=function(){return!1}';
+            if (!funcStr.includes(text)) {
+                return false;
+            }
+
+            return funcStr.replace(text, '.disableTelemetry=function(){return!0}');
+        },
+
+        // Set TV layout
+        tvLayout: PREFS.get(Preferences.UI_LAYOUT) === 'tv' && function(funcStr) {
+            const text = '?"tv":"default"';
+            if (!funcStr.includes(text)) {
+                return false;
+            }
+
+            return funcStr.replace(text, '?"tv":"tv"');
+        },
+
+        // Replace "/direct-connect" with "/play"
+        remotePlayDirectConnectUrl: PREFS.get(Preferences.REMOTE_PLAY_ENABLED) && function(funcStr) {
+            const index = funcStr.indexOf('/direct-connect');
+            if (index === -1) {
+                return false;
+            }
+
+            return funcStr.replace(funcStr.substring(index - 9, index + 15), 'https://www.xbox.com/play');
+        },
+
+        remotePlayKeepAlive: PREFS.get(Preferences.REMOTE_PLAY_ENABLED) && function(funcStr) {
+            if (!funcStr.includes('onServerDisconnectMessage(e){')) {
+                return false;
+            }
+
+            funcStr = funcStr.replace('onServerDisconnectMessage(e){', `onServerDisconnectMessage(e) {
+                const msg = JSON.parse(e);
+                if (msg.reason === 'WarningForBeingIdle') {
+                    try {
+                        this.sendKeepAlive();
+                        return;
+                    } catch (ex) { console.log(ex); }
+                }
+            `);
+
+            return funcStr;
+        },
+
+        // Enable Remote Play feature
+        remotePlayConnectMode: PREFS.get(Preferences.REMOTE_PLAY_ENABLED) && function(funcStr) {
+            const text = 'connectMode:"cloud-connect"';
+            if (!funcStr.includes(text)) {
+                return false;
+            }
+
+            return funcStr.replace(text, `connectMode:window.BX_REMOTE_PLAY_CONFIG?"xhome-connect":"cloud-connect",remotePlayServerId:(window.BX_REMOTE_PLAY_CONFIG&&window.BX_REMOTE_PLAY_CONFIG.serverId)||''`);
+        },
+
+        // Disable trackEvent() function
+        disableTrackEvent: PREFS.get(Preferences.BLOCK_TRACKING) && function(funcStr) {
+            const text = 'this.trackEvent=';
+            if (!funcStr.includes(text)) {
+                return false;
+            }
+
+            return funcStr.replace(text, 'this.trackEvent=e=>{},this.uwuwu=');
+        },
+
+        // Block WebRTC stats collector
+        blockWebRtcStatsCollector: PREFS.get(Preferences.BLOCK_TRACKING) && function(funcStr) {
+            const text = 'this.intervalMs=0,';
+            if (!funcStr.includes(text)) {
+                return false;
+            }
+
+            return funcStr.replace(text, 'false,' + text);
+        },
+
+        enableXcloudLogger: ENABLE_XCLOUD_LOGGER && function(funcStr) {
+            const text = '}log(e,t,n){';
+            if (!funcStr.includes(text)) {
+                return false;
+            }
+
+            funcStr = funcStr.replaceAll(text, text + 'console.log(arguments);');
+            return funcStr;
+        },
+
+        enableConsoleLogging: ENABLE_XCLOUD_LOGGER && function(funcStr) {
+            const text = 'static isConsoleLoggingAllowed(){';
+            if (!funcStr.includes(text)) {
+                return false;
+            }
+
+            funcStr = funcStr.replaceAll(text, text + 'return true;');
+            return funcStr;
+        },
+
+        // Control controller vibration
+        playVibration: function(funcStr) {
+            const text = '}playVibration(e){';
+            if (!funcStr.includes(text)) {
+                return false;
+            }
+
+            const newCode = `
+if (!window.BX_ENABLE_CONTROLLER_VIBRATION) {
+    return void(0);
+}
+if (window.BX_VIBRATION_INTENSITY && window.BX_VIBRATION_INTENSITY < 1) {
+    e.leftMotorPercent = e.leftMotorPercent * window.BX_VIBRATION_INTENSITY;
+    e.rightMotorPercent = e.rightMotorPercent * window.BX_VIBRATION_INTENSITY;
+    e.leftTriggerMotorPercent = e.leftTriggerMotorPercent * window.BX_VIBRATION_INTENSITY;
+    e.rightTriggerMotorPercent = e.rightTriggerMotorPercent * window.BX_VIBRATION_INTENSITY;
+}
+`;
+
+            VibrationManager.updateGlobalVars();
+            funcStr = funcStr.replaceAll(text, text + newCode);
+            return funcStr;
+        },
+
+        // Override website's settings
+        overrideSettings: function(funcStr) {
+            const index = funcStr.indexOf(',EnableStreamGate:');
+            if (index === -1) {
+                return false;
+            }
+
+            // Find the next "},"
+            const endIndex = funcStr.indexOf('},', index);
+
+            const newCode = `
+EnableStreamGate: false,
+PwaPrompt: false,
+`;
+            funcStr = funcStr.substring(0, endIndex) + ',' + newCode + funcStr.substring(endIndex);
+            return funcStr;
+        },
+
+        // Enable Mouse and Keyboard support
+        enableMouseAndKeyboard: PREFS.get(Preferences.MKB_ENABLED) && function(funcStr) {
+            if (!funcStr.includes('EnableMouseAndKeyboard:')) {
+                return false;
+            }
+
+            funcStr = funcStr.replace('EnableMouseAndKeyboard:!1', 'EnableMouseAndKeyboard:!0');
+            if (PREFS.get(Preferences.MKB_ABSOLUTE_MOUSE)) {
+                funcStr = funcStr.replace('EnableAbsoluteMouse:!1', 'EnableAbsoluteMouse:!0');
+            }
+
+            return funcStr;
+        },
+    };
+
+    static #PATCH_ORDERS = [
+        [
+            'disableAiTrack',
+            'disableTelemetry',
+        ],
+
+        ['tvLayout'],
+
+        ['enableXcloudLogger'],
+
+        [
+            // 'enableMouseAndKeyboard',
+            'overrideSettings',
+            'remotePlayDirectConnectUrl',
+            'disableTrackEvent',
+            'enableConsoleLogging',
+            'remotePlayKeepAlive',
+            'blockWebRtcStatsCollector',
+        ],
+
+        // Only when playing
+        ['remotePlayConnectMode'],
+        ['playVibration'],
+        ['enableConsoleLogging'],
+    ];
+
+    static #patchFunctionBind() {
+        Function.prototype.nativeBind = Function.prototype.bind;
+        Function.prototype.bind = function() {
+            let valid = false;
+            if (arguments.length === 2 && arguments[0] === null) {
+                if (arguments[1] === 0 || (typeof arguments[1] === 'function')) {
+                    valid = true;
+                }
+            }
+
+            if (!valid) {
+                return this.nativeBind.apply(this, arguments);
+            }
+
+            if (typeof arguments[1] === 'function') {
+                console.log('[Better xCloud] Restored Function.prototype.bind()');
+                Function.prototype.bind = Function.prototype.nativeBind;
+            }
+
+            const orgFunc = this;
+            const newFunc = (a, item) => {
+                if (Patcher.length() === 0) {
+                    orgFunc(a, item);
+                    return;
+                }
+
+                Patcher.patch(item);
+                orgFunc(a, item);
+            }
+
+            return newFunc.nativeBind.apply(newFunc, arguments);
+        };
+    }
+
+    static length() { return Patcher.#PATCH_ORDERS.length; };
+
+    static patch(item) {
+        let patchName;
+        let appliedPatches;
+
+        for (let id in item[1]) {
+            if (Patcher.#PATCH_ORDERS.length <= 0) {
+                return;
+            }
+
+            appliedPatches = [];
+            const func = item[1][id];
+            let funcStr = func.toString();
+
+            for (let groupIndex = 0; groupIndex < Patcher.#PATCH_ORDERS.length; groupIndex++) {
+                const group = Patcher.#PATCH_ORDERS[groupIndex];
+                let modified = false;
+
+                for (let patchIndex = 0; patchIndex < group.length; patchIndex++) {
+                    const patchName = group[patchIndex];
+                    if (appliedPatches.indexOf(patchName) > -1) {
+                        continue;
+                    }
+
+                    const patchedFuncStr = Patcher.#PATCHES[patchName].call(null, funcStr);
+                    if (!patchedFuncStr) {
+                        // Only stop if the first patch is failed
+                        if (patchIndex === 0) {
+                            break;
+                        } else {
+                            continue;
+                        }
+                    }
+
+                    modified = true;
+                    funcStr = patchedFuncStr;
+
+                    console.log(`[Better xCloud] Applied "${patchName}" patch`);
+                    appliedPatches.push(patchName);
+
+                    // Remove patch from group
+                    group.splice(patchIndex, 1);
+                    patchIndex--;
+                }
+
+                // Apply patched functions
+                if (modified) {
+                    item[1][id] = eval(funcStr);
+                }
+
+                // Remove empty group
+                if (!group.length) {
+                    Patcher.#PATCH_ORDERS.splice(groupIndex, 1);
+                    groupIndex--;
+                }
+            }
+        }
+    }
+
+    static initialize() {
+        // Remove disabled patches
+        for (let groupIndex = Patcher.#PATCH_ORDERS.length - 1; groupIndex >= 0; groupIndex--) {
+            const group = Patcher.#PATCH_ORDERS[groupIndex];
+
+            for (let patchIndex = group.length - 1; patchIndex >= 0; patchIndex--) {
+                const patchName = group[patchIndex];
+                if (!Patcher.#PATCHES[patchName]) {
+                    // Remove disabled patch
+                    group.splice(patchIndex, 1);
+                }
+            }
+
+            // Remove empty group
+            if (!group.length) {
+                Patcher.#PATCH_ORDERS.splice(groupIndex, 1);
+            }
+        }
+
+        Patcher.#patchFunctionBind();
+    }
+}
+
+
 function checkForUpdate() {
     const CHECK_INTERVAL_SECONDS = 4 * 3600; // check every 4 hours
 
@@ -3103,11 +4813,12 @@ function addCss() {
     --bx-monospaced-font: Consolas, "Courier New", Courier, monospace;
 
     --bx-wait-time-box-z-index: 9999;
-    --bx-stream-settings-z-index: 9999;
+    --bx-stats-bar-z-index: 9001;
+    --bx-stream-settings-z-index: 9000;
     --bx-screenshot-z-index: 8888;
     --bx-touch-controller-bar-z-index: 5555;
-    --bx-stats-settings-z-index: 1001;
-    --bx-stats-bar-z-index: 1000;
+    --bx-dialog-z-index: 1010;
+    --bx-dialog-overlay-z-index: 900;
 }
 
 .bx-settings-button {
@@ -3136,12 +4847,24 @@ function addCss() {
     font-family: var(--bx-normal-font);
 }
 
+.bx-full-width {
+    width: 100% !important;
+}
+
 .bx-gone {
     display: none !important;
 }
 
 .bx-hidden {
     visibility: hidden !important;
+}
+
+.bx-no-margin {
+    margin: 0 !important;
+}
+
+.bx-no-padding {
+    padding: 0 !important;
 }
 
 .bx-settings-wrapper {
@@ -3156,6 +4879,8 @@ function addCss() {
 
 .bx-settings-wrapper .bx-settings-title-wrapper {
     display: flex;
+    margin-bottom: 10px;
+    align-items: center;
 }
 
 .bx-settings-wrapper a.bx-settings-title {
@@ -3164,7 +4889,6 @@ function addCss() {
     text-decoration: none;
     font-weight: bold;
     display: block;
-    margin-bottom: 8px;
     color: #5dc21e;
     flex: 1;
 }
@@ -3186,9 +4910,14 @@ function addCss() {
 }
 
 .bx-settings-wrapper a.bx-settings-update {
-    display: none;
+    display: block;
     color: #ff834b;
     text-decoration: none;
+    margin-bottom: px;
+    text-align: center;
+    background: #222;
+    border-radius: 4px;
+    padding: 4px;
 }
 
 @media (hover: hover) {
@@ -3216,6 +4945,14 @@ function addCss() {
     padding-left: 10px;
 }
 
+.bx-settings-group-label b, .bx-settings-row label b {
+    display: block;
+    font-size: 12px;
+    font-style: italic;
+    font-weight: normal;
+    color: #828282;
+}
+
 @media not (hover: hover) {
     .bx-settings-row:focus-within {
        background-color: #242424;
@@ -3226,8 +4963,7 @@ function addCss() {
     align-self: center;
 }
 
-.bx-settings-reload-button {
-    width: 100%;
+.bx-primary-button {
     padding: 8px 32px;
     margin: 10px auto 0;
     border: none;
@@ -3244,17 +4980,22 @@ function addCss() {
 }
 
 @media (hover: hover) {
-    .bx-settings-reload-button:hover {
+    .bx-primary-button:hover {
         background-color: #00753c;
     }
 }
 
-.bx-settings-reload-button:focus {
+.bx-primary-button:focus {
     background-color: #00753c;
 }
 
-.bx-settings-reload-button:active {
+.bx-primary-button:active {
     background-color: #00753c;
+}
+
+.bx-primary-button[disabled] {
+    background: #393939;
+    color: #a2a2a2;
 }
 
 .bx-settings-app-version {
@@ -3445,7 +5186,15 @@ div[class*=StreamMenu-module__menuContainer] > div[class*=Menu-module] {
     min-width: 22px;
 }
 
-.bx-stats-settings {
+.bx-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--bx-dialog-overlay-z-index);
+    background: black;
+    opacity: 50%;
+}
+
+.bx-dialog {
     display: flex;
     flex-flow: column;
     max-height: 90vh;
@@ -3457,7 +5206,7 @@ div[class*=StreamMenu-module__menuContainer] > div[class*=Menu-module] {
     width: 420px;
     padding: 20px;
     border-radius: 8px;
-    z-index: var(--bx-stats-settings-z-index);
+    z-index: var(--bx-dialog-z-index);
     background: #1a1b1e;
     color: #fff;
     font-weight: 400;
@@ -3468,11 +5217,11 @@ div[class*=StreamMenu-module__menuContainer] > div[class*=Menu-module] {
     -webkit-user-select: none;
 }
 
-.bx-stats-settings *:focus {
+.bx-dialog *:focus {
     outline: none !important;
 }
 
-.bx-stats-settings > b {
+.bx-dialog > b {
     color: #fff;
     display: block;
     font-family: var(--bx-title-font);
@@ -3482,23 +5231,12 @@ div[class*=StreamMenu-module__menuContainer] > div[class*=Menu-module] {
     margin-bottom: 12px;
 }
 
-.bx-stats-settings > div {
+.bx-dialog > div {
     overflow: auto;
+    padding: 2px 0;
 }
 
-.bx-stats-settings > div > div {
-    display: flex;
-    margin-bottom: 8px;
-    padding: 2px 4px;
-}
-
-.bx-stats-settings label {
-    flex: 1;
-    margin-bottom: 0;
-    align-self: center;
-}
-
-.bx-stats-settings button {
+.bx-dialog > button {
     padding: 8px 32px;
     margin: 20px auto 0;
     border: none;
@@ -3515,13 +5253,25 @@ div[class*=StreamMenu-module__menuContainer] > div[class*=Menu-module] {
 }
 
 @media (hover: hover) {
-    .bx-stats-settings button:hover {
+    .bx-dialog > button:hover {
         background-color: #515863;
     }
 }
 
-.bx-stats-settings button:focus {
+.bx-dialog > button:focus {
     background-color: #515863;
+}
+
+.bx-stats-settings-dialog > div > div {
+    display: flex;
+    margin-bottom: 8px;
+    padding: 2px 4px;
+}
+
+.bx-stats-settings-dialog label {
+    flex: 1;
+    margin-bottom: 0;
+    align-self: center;
 }
 
 .bx-quick-settings-bar {
@@ -3531,20 +5281,19 @@ div[class*=StreamMenu-module__menuContainer] > div[class*=Menu-module] {
     -webkit-user-select: none;
     position: fixed;
     right: 0;
-    top: 20px;
-    bottom: 20px;
+    top: 0;
+    bottom: 0;
     z-index: var(--bx-stream-settings-z-index);
-    padding: 8px;
-    width: 220px;
+    padding: 16px;
+    width: 420px;
     background: #1a1b1e;
     color: #fff;
-    border-radius: 8px 0 0 8px;
     font-weight: 400;
     font-size: 16px;
     font-family: var(--bx-title-font);
     text-align: center;
     box-shadow: 0px 0px 6px #000;
-    opacity: 0.95;
+    opacity: 0.98;
     overflow: overlay;
 }
 
@@ -3571,27 +5320,34 @@ div[class*=StreamMenu-module__menuContainer] > div[class*=Menu-module] {
 }
 
 .bx-quick-settings-bar > div {
+    display: flex;
+    border-bottom: 1px solid #40404080;
     margin-bottom: 16px;
+    padding-bottom: 16px;
 }
 
 .bx-quick-settings-bar h2 {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: bold;
     margin-bottom: 8px;
+    text-transform: uppercase;
+    text-align: left;
 }
 
 .bx-quick-settings-bar input[type="range"] {
     display: block;
-    margin: 12px auto;
-    width: 80%;
+    margin: 12px auto 2px;
+    width: 180px;
     color: #959595 !important;
 }
 
 .bx-quick-settings-bar label {
     font-size: 16px;
-    font-weight: bold;
     display: block;
-    margin-bottom: 8px;
+    text-align: left;
+    flex: 1;
+    align-self: center;
+    margin-bottom: 0 !important;
 }
 
 .bx-quick-settings-bar button {
@@ -3606,6 +5362,44 @@ div[class*=StreamMenu-module__menuContainer] > div[class*=Menu-module] {
     font-weight: bold;
     font-size: 14px;
     font-family: var(--bx-monospaced-font);
+}
+
+.bx-quick-settings-bar-note {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    font-weight: lighter;
+    font-style: italic;
+    padding-top: 16px;
+}
+
+.bx-toast {
+    position: fixed;
+    left: 50%;
+    top: 24px;
+    transform: translate(-50%, 0);
+    background: #000000cc;
+    border-radius: 40px;
+    padding: 8px 18px;
+    color: white;
+    z-index: 999;
+    font-family: var(--bx-normal-font);
+    border: 1px solid #fff;
+}
+
+.bx-toast-msg {
+    font-size: 12px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.bx-toast-status {
+    font-weight: bold;
+    font-size: 18px;
+    text-transform: uppercase;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
 }
 
 @media (hover: hover) {
@@ -3678,6 +5472,90 @@ div[class*=StreamMenu-module__menuContainer] > div[class*=Menu-module] {
 .bx-wait-time-estimated {
     margin-bottom: 10px;
 }
+
+/* REMOTE PLAY */
+
+.bx-container {
+    width: 480px;
+    margin: 0 auto;
+}
+
+#bxUi {
+    margin-top: 14px;
+}
+
+.bx-remote-play-settings {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #2d2d2d;
+}
+
+.bx-remote-play-settings > div {
+    display: flex;
+}
+
+.bx-remote-play-settings label {
+    flex: 1;
+}
+
+.bx-remote-play-settings label p {
+    margin: 4px 0 0;
+    padding: 0;
+    color: #888;
+    font-size: 12px;
+}
+
+.bx-remote-play-settings input {
+    display: block;
+    margin: 0 auto;
+}
+
+.bx-remote-play-settings span {
+    font-weight: bold;
+    font-size: 18px;
+    display: block;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.bx-remote-play-device-wrapper {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.bx-remote-play-device-wrapper:not(:last-child) {
+  margin-bottom: 14px;
+}
+
+.bx-remote-play-device-info {
+    flex: 1;
+    padding: 4px 0;
+}
+
+.bx-remote-play-device-name {
+    font-size: 20px;
+    font-weight: bold;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.bx-remote-play-console-type {
+    font-size: 12px;
+    background: #888;
+    color: #fff;
+    display: inline-block;
+    border-radius: 14px;
+    padding: 2px 10px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.bx-remote-play-power-state {
+    color: #888;
+    font-size: 14px;
+}
+
+/* ----------- */
 
 /* Hide UI elements */
 #headerArea, #uhfSkipToMain, .uhf-footer {
@@ -3841,7 +5719,7 @@ function getPreferredServerRegion() {
 }
 
 
-function updateIceCandidates(candidates) {
+function updateIceCandidates(candidates, options) {
     const pattern = new RegExp(/a=candidate:(?<foundation>\d+) (?<component>\d+) UDP (?<priority>\d+) (?<ip>[^\s]+) (?<the_rest>.*)/);
 
     const lst = [];
@@ -3854,13 +5732,15 @@ function updateIceCandidates(candidates) {
         lst.push(groups);
     }
 
-    lst.sort((a, b) => (a.ip.includes(':') || a.ip > b.ip) ? -1 : 1);
+    if (options.preferIpv6Server) {
+        lst.sort((a, b) => (!a.ip.includes(':') && b.ip.includes(':')) ? 1 : -1);
+    }
 
     const newCandidates = [];
     let foundation = 1;
     lst.forEach(item => {
         item.foundation = foundation;
-        item.priority = (foundation == 1) ? 100 : 1;
+        item.priority = (foundation == 1) ? 10000 : 1;
 
         newCandidates.push({
             'candidate': `a=candidate:${item.foundation} 1 UDP ${item.priority} ${item.ip} ${item.the_rest}`,
@@ -3872,6 +5752,15 @@ function updateIceCandidates(candidates) {
         ++foundation;
     });
 
+    if (options.consoleIp) {
+        newCandidates.push({
+            'candidate': `a=candidate:${newCandidates.length + 1} 1 UDP 1 ${options.consoleIp} 9002 typ host`,
+            'messageType': 'iceCandidate',
+            'sdpMLineIndex': '0',
+            'sdpMid': '0',
+        });
+    }
+
     newCandidates.push({
         'candidate': 'a=end-of-candidates',
         'messageType': 'iceCandidate',
@@ -3879,6 +5768,7 @@ function updateIceCandidates(candidates) {
         'sdpMid': '0',
     });
 
+    console.log(newCandidates);
     return newCandidates;
 }
 
@@ -3899,11 +5789,6 @@ function interceptHttpRequests() {
     }
 
     if (PREFS.get(Preferences.BLOCK_SOCIAL_FEATURES)) {
-        // Disable WebSocket
-        WebSocket = {
-            CLOSING: 2,
-        };
-
         BLOCKED_URLS = BLOCKED_URLS.concat([
             'https://peoplehub.xboxlive.com/users/me',
             'https://accounts.xboxlive.com/family/memberXuid',
@@ -3942,16 +5827,164 @@ function interceptHttpRequests() {
     const PREF_OVERRIDE_CONFIGURATION = PREF_AUDIO_MIC_ON_PLAYING || PREF_STREAM_TOUCH_CONTROLLER === 'all';
 
     const orgFetch = window.fetch;
-    window.fetch = async (...arg) => {
+    let consoleIp;
+    let consolePort;
+
+    const patchIceCandidates = function(...arg) {
+        // ICE server candidates
         const request = arg[0];
         const url = (typeof request === 'string') ? request : request.url;
 
+        if (url && url.endsWith('/ice') && url.includes('/sessions/') && request.method === 'GET') {
+            const promise = orgFetch(...arg);
+
+            return promise.then(response => {
+                return response.clone().text().then(text => {
+                    if (!text.length) {
+                        return response;
+                    }
+
+                    const options = {
+                        preferIpv6Server: PREF_PREFER_IPV6_SERVER,
+                        consoleIp: consoleIp,
+                    };
+
+                    const obj = JSON.parse(text);
+                    let exchangeResponse = JSON.parse(obj.exchangeResponse);
+                    exchangeResponse = updateIceCandidates(exchangeResponse, options)
+                    obj.exchangeResponse = JSON.stringify(exchangeResponse);
+
+                    response.json = () => Promise.resolve(obj);
+                    response.text = () => Promise.resolve(JSON.stringify(obj));
+
+                    return response;
+                });
+            });
+        }
+
+        return null;
+    }
+
+    window.fetch = async (...arg) => {
+        let request = arg[0];
+        let url = (typeof request === 'string') ? request : request.url;
+
+        if (url.endsWith('/play')) {
+            // Setup UI
+            setupBxUi();
+        }
+
+        if (IS_REMOTE_PLAYING && url.includes('/sessions/home')) {
+            const clone = request.clone();
+
+            const headers = {};
+            for (const pair of clone.headers.entries()) {
+                headers[pair[0]] = pair[1];
+            }
+            headers['authorization'] = `Bearer ${RemotePlay.XHOME_TOKEN}`;
+
+            const deviceInfo = RemotePlay.BASE_DEVICE_INFO;
+            if (PREFS.get(Preferences.REMOTE_PLAY_RESOLUTION) === '720p') {
+                deviceInfo.dev.os.name = 'android';
+            }
+
+            headers['x-ms-device-info'] = JSON.stringify(deviceInfo);
+
+            const opts = {
+                method: clone.method,
+                headers: headers,
+            };
+
+            if (clone.method === 'POST') {
+                opts.body = await clone.text();
+            }
+
+            const index = request.url.indexOf('.xboxlive.com');
+            let newUrl = 'https://wus2.gssv-play-prodxhome' + request.url.substring(index);
+
+            request = new Request(newUrl, opts);
+
+            arg[0] = request;
+            url = (typeof request === 'string') ? request : request.url;
+
+            // Get console IP
+            if (url.includes('/configuration')) {
+                const promise = orgFetch(...arg);
+
+                return promise.then(response => {
+                    return response.clone().json().then(obj => {
+                        console.log(obj);
+                        consoleIp = obj.serverDetails.ipAddress;
+                        consolePort = obj.serverDetails.port;
+
+                        response.json = () => Promise.resolve(obj);
+                        return response;
+                    });
+                });
+            }
+
+            return patchIceCandidates(...arg) || orgFetch(...arg);
+        }
+
+        if (IS_REMOTE_PLAYING && url.includes('/login/user')) {
+            try {
+                const clone = request.clone();
+
+                const obj = await clone.json();
+                obj.offeringId = 'xhome';
+
+                request = new Request('https://xhome.gssv-play-prod.xboxlive.com/v2/login/user', {
+                    method: 'POST',
+                    body: JSON.stringify(obj),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                arg[0] = request;
+            } catch (e) {
+                alert(e);
+                console.log(e);
+            }
+
+            return orgFetch(...arg);
+        }
+
+        if (IS_REMOTE_PLAYING && url.includes('/titles')) {
+            const clone = request.clone();
+
+            const headers = {};
+            for (const pair of clone.headers.entries()) {
+                headers[pair[0]] = pair[1];
+            }
+            headers['authorization'] = `Bearer ${RemotePlay.XCLOUD_TOKEN}`;
+
+            const index = request.url.indexOf('.xboxlive.com');
+            request = new Request('https://wus.core.gssv-play-prod' + request.url.substring(index), {
+                method: clone.method,
+                body: await clone.text(),
+                headers: headers,
+            });
+
+            arg[0] = request;
+            return orgFetch(...arg);
+        }
+
+        // ICE server candidates
+        const patchedIpv6 = patchIceCandidates(...arg);
+        if (patchedIpv6) {
+            return patchedIpv6;
+        }
+
         // Server list
-        if (url.endsWith('/v2/login/user')) {
+        if (!url.includes('xhome.') && url.endsWith('/v2/login/user')) {
             const promise = orgFetch(...arg);
 
             return promise.then(response => {
                 return response.clone().json().then(obj => {
+                    // Store xCloud token
+                    RemotePlay.XCLOUD_TOKEN = obj.gsToken;
+
                     // Get server list
                     if (!Object.keys(SERVER_REGIONS).length) {
                         for (let region of obj.offeringSettings.regions) {
@@ -3959,7 +5992,7 @@ function interceptHttpRequests() {
                         }
 
                         // Start rendering UI
-                        if (!document.getElementById('gamepass-root')) {
+                        if (document.querySelector('div[class^=UnsupportedMarketPage]')) {
                             setTimeout(watchHeader, 2000);
                         } else {
                             watchHeader();
@@ -4083,6 +6116,7 @@ function interceptHttpRequests() {
                     // Enable touch controller
                     if (TouchController.isEnabled()) {
                         overrides.inputConfiguration = overrides.inputConfiguration || {};
+                        overrides.enableVibration = true;
                         overrides.inputConfiguration.enableTouchInput = true;
                         overrides.inputConfiguration.maxTouchPoints = 10;
                     }
@@ -4130,29 +6164,6 @@ function interceptHttpRequests() {
             });
         }
 
-        // ICE server candidates
-        if (PREF_PREFER_IPV6_SERVER && url.endsWith('/ice') && url.includes('/sessions/cloud/') && request.method === 'GET') {
-            const promise = orgFetch(...arg);
-
-            return promise.then(response => {
-                return response.clone().text().then(text => {
-                    if (!text.length) {
-                        return response;
-                    }
-
-                    const obj = JSON.parse(text);
-                    let exchangeResponse = JSON.parse(obj.exchangeResponse);
-                    exchangeResponse = updateIceCandidates(exchangeResponse)
-                    obj.exchangeResponse = JSON.stringify(exchangeResponse);
-
-                    response.json = () => Promise.resolve(obj);
-                    response.text = () => Promise.resolve(JSON.stringify(obj));
-
-                    return response;
-                });
-            });
-        }
-
         for (let blocked of BLOCKED_URLS) {
             if (!url.startsWith(blocked)) {
                 continue;
@@ -4177,6 +6188,7 @@ function injectSettingsButton($parent) {
     const CE = createElement;
     const PREF_PREFERRED_REGION = getPreferredServerRegion();
     const PREF_LATEST_VERSION = PREFS.get(Preferences.LATEST_VERSION);
+    const PREF_REMOTE_PLAY_ENABLED = PREFS.get(Preferences.REMOTE_PLAY_ENABLED);
 
     // Setup Settings button
     const $button = CE('button', {'class': 'bx-settings-button'}, PREF_PREFERRED_REGION);
@@ -4200,6 +6212,7 @@ function injectSettingsButton($parent) {
     });
 
     let $updateAvailable;
+    let $remotePlayBtn;
     const $wrapper = CE('div', {'class': 'bx-settings-wrapper'},
                         CE('div', {'class': 'bx-settings-title-wrapper'},
                            CE('a', {
@@ -4207,25 +6220,39 @@ function injectSettingsButton($parent) {
                                 'href': SCRIPT_HOME,
                                 'target': '_blank',
                            }, 'Better xCloud ' + SCRIPT_VERSION),
-                           $updateAvailable = CE('a', {
-                                'class': 'bx-settings-update',
-                                'href': 'https://github.com/redphx/better-xcloud/releases',
-                                'target': '_blank',
-                           })
+                           $remotePlayBtn = CE('button', {'class': 'bx-primary-button bx-no-margin'}, __('remote-play')),
                         )
                        );
-    $container.appendChild($wrapper);
+    $updateAvailable = CE('a', {
+        'class': 'bx-settings-update bx-gone',
+        'href': 'https://github.com/redphx/better-xcloud/releases',
+        'target': '_blank',
+    });
+
+    if (PREF_REMOTE_PLAY_ENABLED) {
+        $remotePlayBtn.addEventListener('click', e => {
+            RemotePlay.showDialog();
+
+            // Hide Settings
+            $container.classList.add('bx-gone');
+        });
+    } else {
+        $remotePlayBtn.classList.add('bx-gone');
+    }
+
+    $wrapper.appendChild($updateAvailable);
 
     // Show new version indicator
     if (PREF_LATEST_VERSION && PREF_LATEST_VERSION != SCRIPT_VERSION) {
         $updateAvailable.textContent = `🌟 Version ${PREF_LATEST_VERSION} available`;
-        $updateAvailable.style.display = 'block';
+        $updateAvailable.classList.remove('bx-gone');
     }
 
     // Render settings
     const SETTINGS_UI = {
         'Better xCloud': {
             [Preferences.BETTER_XCLOUD_LOCALE]: __('language'),
+            [Preferences.REMOTE_PLAY_ENABLED]: __('enable-remote-play-feature'),
         },
         [__('server')]: {
             [Preferences.SERVER_REGION]: __('region'),
@@ -4241,17 +6268,28 @@ function injectSettingsButton($parent) {
             [Preferences.STREAM_HIDE_IDLE_CURSOR]: __('hide-idle-cursor'),
             [Preferences.STREAM_DISABLE_FEEDBACK_DIALOG]: __('disable-post-stream-feedback-dialog'),
         },
+        [__('controller')]: {
+            [Preferences.CONTROLLER_ENABLE_SHORTCUTS]: __('enable-controller-shortcuts'),
+        },
         [__('touch-controller')]: {
             [Preferences.STREAM_TOUCH_CONTROLLER]: __('tc-availability'),
             [Preferences.STREAM_TOUCH_CONTROLLER_STYLE_STANDARD]: __('tc-standard-layout-style'),
             [Preferences.STREAM_TOUCH_CONTROLLER_STYLE_CUSTOM]: __('tc-custom-layout-style'),
         },
+
+        [__('mouse-and-keyboard')]: {
+            '_note': '⚠️ ' + __('may-not-work-properly'),
+            [Preferences.MKB_ENABLED]: [__('enable-mkb'), __('only-supports-some-games')],
+            [Preferences.MKB_ABSOLUTE_MOUSE]: __('use-mouse-absolute-position'),
+        },
+
         [__('loading-screen')]: {
             [Preferences.UI_LOADING_SCREEN_GAME_ART]: __('show-game-art'),
             [Preferences.UI_LOADING_SCREEN_WAIT_TIME]: __('show-wait-time'),
             [Preferences.UI_LOADING_SCREEN_ROCKET]: __('rocket-animation'),
         },
         [__('ui')]: {
+            [Preferences.UI_LAYOUT]: __('layout'),
             [Preferences.STREAM_SIMPLIFY_MENU]: __('simplify-stream-menu'),
             [Preferences.SKIP_SPLASH_VIDEO]: __('skip-splash-video'),
             [Preferences.HIDE_DOTS_ICON]: __('hide-system-menu-icon'),
@@ -4269,12 +6307,35 @@ function injectSettingsButton($parent) {
     };
 
     for (let groupLabel in SETTINGS_UI) {
+        if (!ENABLE_MKB && groupLabel === __('mouse-and-keyboard')) {
+            continue;
+        }
+
         const $group = CE('span', {'class': 'bx-settings-group-label'}, groupLabel);
+
+        // Render note
+        if (SETTINGS_UI[groupLabel]._note) {
+            const $note = CE('b', {}, SETTINGS_UI[groupLabel]._note);
+            $group.appendChild($note);
+        }
+
         $wrapper.appendChild($group);
 
         for (let settingId in SETTINGS_UI[groupLabel]) {
+            if (settingId.startsWith('_')) {
+                continue;
+            }
+
             const setting = Preferences.SETTINGS[settingId];
-            const settingLabel = SETTINGS_UI[groupLabel][settingId];
+
+            let settingLabel;
+            let settingNote;
+
+            if (Array.isArray(SETTINGS_UI[groupLabel][settingId])) {
+                [settingLabel, settingNote] = SETTINGS_UI[groupLabel][settingId];
+            } else {
+                settingLabel = SETTINGS_UI[groupLabel][settingId];
+            }
 
             let $control, $inpCustomUserAgent;
             let labelAttrs = {};
@@ -4302,7 +6363,7 @@ function injectSettingsButton($parent) {
             } else if (settingId === Preferences.SERVER_REGION) {
                 let selectedValue;
 
-                $control = CE('select', {id: 'xcloud_setting_' + settingId});
+                $control = CE('select', {id: `bx_setting_${settingId}`});
                 $control.addEventListener('change', e => {
                     PREFS.set(settingId, e.target.value);
                 });
@@ -4358,8 +6419,12 @@ function injectSettingsButton($parent) {
             }
             $control.disabled && ($control.style.cursor = 'help');
 
+            const $label = CE('label', labelAttrs, settingLabel);
+            if (settingNote) {
+                $label.appendChild(CE('b', {}, settingNote));
+            }
             const $elm = CE('div', {'class': 'bx-settings-row'},
-                            CE('label', labelAttrs, settingLabel),
+                            $label,
                             $control
                            );
 
@@ -4375,7 +6440,7 @@ function injectSettingsButton($parent) {
     }
 
     // Setup Reload button
-    const $reloadBtn = CE('button', {'class': 'bx-settings-reload-button', 'tabindex': 0}, __('settings-reload'));
+    const $reloadBtn = CE('button', {'class': 'bx-primary-button bx-full-width', 'tabindex': 0}, __('settings-reload'));
     $reloadBtn.addEventListener('click', e => {
         window.location.reload();
         $reloadBtn.textContent = __('settings-reloading');
@@ -4388,6 +6453,8 @@ function injectSettingsButton($parent) {
         const appDate = new Date(document.querySelector('meta[name=gamepass-app-date]').content).toISOString().substring(0, 10);
         $wrapper.appendChild(CE('div', {'class': 'bx-settings-app-version'}, `GamePass app ${appVersion} (${appDate})`));
     } catch (e) {}
+
+    $container.appendChild($wrapper);
 
     // Add Settings UI to the web page
     const $pageContent = document.getElementById('PageContent');
@@ -4762,50 +6829,207 @@ function patchRtcCodecs() {
 }
 
 
-function setupVideoSettingsBar() {
+function setupQuickSettingsBar() {
     const CE = createElement;
     const isSafari = UserAgent.isSafari();
-    const onVideoChange = e => {
-        updateVideoPlayerCss();
+
+    const SETTINGS_UI = [
+        {
+            group: 'controller',
+            label: __('controller'),
+            items: {
+                [Preferences.CONTROLLER_ENABLE_VIBRATION]: {
+                    label: __('controller-vibration'),
+                    unsupported: !VibrationManager.supportControllerVibration(),
+                    onChange: VibrationManager.updateGlobalVars,
+                },
+
+                [Preferences.CONTROLLER_DEVICE_VIBRATION]: {
+                    label: __('device-vibration'),
+                    unsupported: !VibrationManager.supportDeviceVibration(),
+                    onChange: VibrationManager.updateGlobalVars,
+                },
+
+                [Preferences.CONTROLLER_VIBRATION_INTENSITY]: (VibrationManager.supportControllerVibration() || VibrationManager.supportDeviceVibration()) && {
+                    label: __('vibration-intensity'),
+                    unsupported: !VibrationManager.supportDeviceVibration(),
+                    onChange: VibrationManager.updateGlobalVars,
+                    type: 'number-stepper',
+                    params: {
+                        suffix: '%',
+                        ticks: 50,
+                    },
+                },
+            },
+        },
+
+        {
+            group: 'audio',
+            label: __('audio'),
+            items: {
+                [Preferences.AUDIO_VOLUME]: {
+                    label: __('volume'),
+                    onChange: (e, value) => {
+                        STREAM_AUDIO_GAIN_NODE && (STREAM_AUDIO_GAIN_NODE.gain.value = (value / 100).toFixed(2));
+                    },
+                    type: 'number-stepper',
+                    params: {
+                        suffix: '%',
+                        ticks: 100,
+                        disabled: !PREFS.get(Preferences.AUDIO_ENABLE_VOLUME_CONTROL),
+                    },
+                },
+            },
+        },
+
+        {
+            group: 'video',
+            label: __('video'),
+            note: CE('div', {'class': 'bx-quick-settings-bar-note bx-clarity-boost-warning'}, `⚠️ ${__('clarity-boost-warning')}`),
+            items: {
+                [Preferences.VIDEO_RATIO]: {
+                    label: __('ratio'),
+                    onChange: updateVideoPlayerCss,
+                },
+
+                [Preferences.VIDEO_CLARITY]: {
+                    label: __('clarity'),
+                    onChange: updateVideoPlayerCss,
+                    type: 'number-stepper',
+                    unsupported: isSafari,
+                    params: {
+                        hideSlider: true,
+                    },
+                },
+
+                [Preferences.VIDEO_SATURATION]: {
+                    label: __('saturation'),
+                    onChange: updateVideoPlayerCss,
+                    type: 'number-stepper',
+                    params: {
+                        suffix: '%',
+                        ticks: 25,
+                    },
+                },
+
+                [Preferences.VIDEO_CONTRAST]: {
+                    label: __('contrast'),
+                    onChange: updateVideoPlayerCss,
+                    type: 'number-stepper',
+                    params: {
+                        suffix: '%',
+                        ticks: 25,
+                    },
+                },
+
+                [Preferences.VIDEO_BRIGHTNESS]: {
+                    label: __('brightness'),
+                    onChange: updateVideoPlayerCss,
+                    type: 'number-stepper',
+                    params: {
+                        suffix: '%',
+                        ticks: 25,
+                    },
+                },
+            },
+        },
+
+        {
+            group: 'stats',
+            label: __('menu-stream-stats'),
+            items: {
+                [Preferences.STATS_SHOW_WHEN_PLAYING]: {
+                    label: __('show-stats-on-startup'),
+                },
+                [Preferences.STATS_QUICK_GLANCE]: {
+                    label: __('enable-quick-glance-mode'),
+                    onChange: e => {
+                        e.target.checked ? StreamStats.quickGlanceSetup() : StreamStats.quickGlanceStop();
+                    },
+                },
+                [Preferences.STATS_ITEMS]: {
+                    label: __('stats'),
+                    onChange: StreamStats.refreshStyles,
+                },
+                [Preferences.STATS_POSITION]: {
+                    label: __('position'),
+                    onChange: StreamStats.refreshStyles,
+                },
+                [Preferences.STATS_TEXT_SIZE]: {
+                    label: __('text-size'),
+                    onChange: StreamStats.refreshStyles,
+                },
+                [Preferences.STATS_OPACITY]: {
+                    label: `${__('opacity')} (50-100%)`,
+                    onChange: StreamStats.refreshStyles,
+                },
+                [Preferences.STATS_TRANSPARENT]: {
+                    label: __('transparent-background'),
+                    onChange: StreamStats.refreshStyles,
+                },
+                [Preferences.STATS_CONDITIONAL_FORMATTING]: {
+                    label: __('conditional-formatting'),
+                    onChange: StreamStats.refreshStyles,
+                },
+            },
+        },
+    ];
+
+    const $wrapper = CE('div', {'class': 'bx-quick-settings-bar'});
+    for (const settingGroup of SETTINGS_UI) {
+        $wrapper.appendChild(CE('h2', {}, settingGroup.label));
+        if (settingGroup.note) {
+            if (typeof settingGroup.note === 'string') {
+                settingGroup.note = document.createTextNode(settingGroup.note);
+            }
+            $wrapper.appendChild(settingGroup.note);
+        }
+
+        for (const pref in settingGroup.items) {
+            const setting = settingGroup.items[pref];
+            if (!setting) {
+                continue;
+            }
+
+            $wrapper.appendChild(CE('div', {'data-type': settingGroup.group},
+                CE('label', {for: `bx_setting_${pref}`},
+                    setting.label,
+                    setting.unsupported && CE('div', {'class': 'bx-quick-settings-bar-note'}, __('browser-unsupported-feature')),
+                ),
+                !setting.unsupported && (setting.type === 'number-stepper' ? PREFS.toNumberStepper(pref, setting.onChange, setting.params) : PREFS.toElement(pref, setting.onChange)),
+            ));
+        }
     }
 
-    let $stretchInp;
-    const $wrapper = CE('div', {'class': 'bx-quick-settings-bar'},
-                        CE('h2', {}, __('audio')),
-                        CE('div', {},
-                            CE('label', {}, __('volume')),
-                            PREFS.toNumberStepper(Preferences.AUDIO_VOLUME, (e, value) => {
-                                STREAM_AUDIO_GAIN_NODE && (STREAM_AUDIO_GAIN_NODE.gain.value = (value / 100).toFixed(2));
-                            }, {suffix: '%', ticks: 100, disabled: !PREFS.get(Preferences.AUDIO_ENABLE_VOLUME_CONTROL)})),
-
-                        CE('h2', {}, __('video')),
-                        CE('div', {'class': 'bx-clarity-boost-warning'}, `⚠️ ${__('clarity-boost-warning')}`),
-                        CE('div', {'data-type': 'video'},
-                            CE('label', {'for': 'bx-quick-setting-stretch'}, __('ratio')),
-                            PREFS.toElement(Preferences.VIDEO_RATIO, onVideoChange)),
-                        CE('div', {'data-type': 'video'},
-                            CE('label', {}, __('clarity')),
-                            PREFS.toNumberStepper(Preferences.VIDEO_CLARITY, onVideoChange, {disabled: isSafari, hideSlider: true})), // disable this feature in Safari
-                        CE('div', {'data-type': 'video'},
-                            CE('label', {}, __('saturation')),
-                            PREFS.toNumberStepper(Preferences.VIDEO_SATURATION, onVideoChange, {suffix: '%', ticks: 25})),
-                        CE('div', {'data-type': 'video'},
-                            CE('label', {}, __('contrast')),
-                            PREFS.toNumberStepper(Preferences.VIDEO_CONTRAST, onVideoChange, {suffix: '%', ticks: 25})),
-                        CE('div', {'data-type': 'video'},
-                            CE('label', {}, __('brightness')),
-                            PREFS.toNumberStepper(Preferences.VIDEO_BRIGHTNESS, onVideoChange, {suffix: '%', ticks: 25}))
-                     );
-
     document.documentElement.appendChild($wrapper);
+}
+
+
+function takeScreenshot(callback) {
+    const $canvasContext = $SCREENSHOT_CANVAS.getContext('2d');
+
+    $canvasContext.drawImage($STREAM_VIDEO, 0, 0, $SCREENSHOT_CANVAS.width, $SCREENSHOT_CANVAS.height);
+    $SCREENSHOT_CANVAS.toBlob(blob => {
+        // Download screenshot
+        const now = +new Date;
+        const $anchor = createElement('a', {
+            'download': `${GAME_TITLE_ID}-${now}.png`,
+            'href': URL.createObjectURL(blob),
+        });
+        $anchor.click();
+
+        // Free screenshot from memory
+        URL.revokeObjectURL($anchor.href);
+        $canvasContext.clearRect(0, 0, $SCREENSHOT_CANVAS.width, $SCREENSHOT_CANVAS.height);
+
+        callback && callback();
+    }, 'image/png');
 }
 
 
 function setupScreenshotButton() {
     $SCREENSHOT_CANVAS = createElement('canvas', {'class': 'bx-screenshot-canvas'});
     document.documentElement.appendChild($SCREENSHOT_CANVAS);
-
-    const $canvasContext = $SCREENSHOT_CANVAS.getContext('2d');
 
     const delay = 2000;
     const $btn = createElement('div', {'class': 'bx-screenshot-button', 'data-showing': false});
@@ -4823,20 +7047,7 @@ function setupScreenshotButton() {
             timeout = null;
             $btn.setAttribute('data-capturing', 'true');
 
-            $canvasContext.drawImage($STREAM_VIDEO, 0, 0, $SCREENSHOT_CANVAS.width, $SCREENSHOT_CANVAS.height);
-            $SCREENSHOT_CANVAS.toBlob(blob => {
-                // Download screenshot
-                const now = +new Date;
-                const $anchor = createElement('a', {
-                    'download': `${GAME_TITLE_ID}-${now}.png`,
-                    'href': URL.createObjectURL(blob),
-                });
-                $anchor.click();
-
-                // Free screenshot from memory
-                URL.revokeObjectURL($anchor.href);
-                $canvasContext.clearRect(0, 0, $SCREENSHOT_CANVAS.width, $SCREENSHOT_CANVAS.height);
-
+            takeScreenshot(() => {
                 // Hide button
                 $btn.setAttribute('data-showing', 'false');
                 setTimeout(() => {
@@ -4844,7 +7055,7 @@ function setupScreenshotButton() {
                         $btn.setAttribute('data-capturing', 'false');
                     }
                 }, 100);
-            }, 'image/png');
+            });
 
             return;
         }
@@ -4866,7 +7077,6 @@ function setupScreenshotButton() {
 
     $btn.addEventListener('mousedown', detectDbClick);
     document.documentElement.appendChild($btn);
-
 }
 
 
@@ -4882,7 +7092,14 @@ function patchHistoryMethod(type) {
 };
 
 
-function onHistoryChanged() {
+function onHistoryChanged(e) {
+    if (e.arguments && e.arguments[0] && e.arguments[0].origin === 'better-xcloud') {
+        return;
+    }
+
+    IS_PLAYING = false;
+    setTimeout(RemotePlay.detect, 10);
+
     const $settings = document.querySelector('.better_xcloud_settings');
     if ($settings) {
         $settings.classList.add('bx-gone');
@@ -4896,23 +7113,39 @@ function onHistoryChanged() {
     STREAM_AUDIO_GAIN_NODE = null;
     $STREAM_VIDEO = null;
     StreamStats.onStoppedPlaying();
-    document.querySelector('.bx-screenshot-button').style = '';
+
+    const $screenshotBtn = document.querySelector('.bx-screenshot-button');
+    if ($screenshotBtn) {
+        $screenshotBtn.style = '';
+    }
 
     MouseCursorHider.stop();
     TouchController.reset();
 
     LoadingScreen.reset();
 
+    GamepadHandler.stopPolling();
+
     setTimeout(checkHeader, 2000);
 }
 
 
 function onStreamStarted($video) {
+    IS_PLAYING = true;
+
     // Get title ID for screenshot's name
-    GAME_TITLE_ID = /\/launch\/([^/]+)/.exec(window.location.pathname)[1];
+    if (window.location.pathname.includes('/launch/')) {
+        GAME_TITLE_ID = /\/launch\/([^/]+)/.exec(window.location.pathname)[1];
+    } else {
+        GAME_TITLE_ID = 'remote-play';
+    }
 
     if (TouchController.isEnabled()) {
         TouchController.enableBar();
+    }
+
+    if (PREFS.get(Preferences.CONTROLLER_ENABLE_SHORTCUTS)) {
+        GamepadHandler.startPolling();
     }
 
     const PREF_SCREENSHOT_BUTTON_POSITION = PREFS.get(Preferences.SCREENSHOT_BUTTON_POSITION);
@@ -4946,6 +7179,9 @@ function onStreamStarted($video) {
         const allAudioCodecs = {};
         let audioCodecId;
 
+        const allCandidates = {};
+        let candidateId;
+
         stats.forEach(stat => {
             if (stat.type == 'codec') {
                 const mimeType = stat.mimeType.split('/');
@@ -4963,6 +7199,10 @@ function onStreamStarted($video) {
                 } else if (stat.kind === 'audio') {
                     audioCodecId = stat.codecId;
                 }
+            } else if (stat.type === 'candidate-pair' && stat.packetsReceived > 0 && stat.state === 'succeeded') {
+                candidateId = stat.remoteCandidateId;
+            } else if (stat.type === 'remote-candidate') {
+                allCandidates[stat.id] = stat.address;
             }
         });
 
@@ -4988,6 +7228,12 @@ function onStreamStarted($video) {
                 codec: audioStat.mimeType.substring(6),
                 bitrate: audioStat.clockRate,
             }
+        }
+
+        // Get server type
+        if (candidateId) {
+            console.log(candidateId, allCandidates);
+            StreamBadges.ipv6 = allCandidates[candidateId].includes(':');
         }
 
         if (PREFS.get(Preferences.STATS_SHOW_WHEN_PLAYING)) {
@@ -5022,6 +7268,21 @@ function disablePwa() {
             value: true,
         });
     }
+}
+
+function setupBxUi() {
+    updateVideoPlayerCss();
+
+    // Prevent initializing multiple times
+    if (document.querySelector('.bx-quick-settings-bar')) {
+        return;
+    }
+
+    window.addEventListener('resize', updateVideoPlayerCss);
+
+    setupQuickSettingsBar();
+    setupScreenshotButton();
+    StreamStats.render();
 }
 
 
@@ -5087,19 +7348,11 @@ if (PREFS.get(Preferences.AUDIO_ENABLE_VOLUME_CONTROL)) {
     }
 }
 
-RTCPeerConnection.prototype.orgAddIceCandidate = RTCPeerConnection.prototype.addIceCandidate;
-RTCPeerConnection.prototype.addIceCandidate = function(...args) {
-    const candidate = args[0].candidate;
-    if (candidate && candidate.startsWith('a=candidate:1 ')) {
-        StreamBadges.ipv6 = candidate.substring(20).includes(':');
-    }
-
-    return this.orgAddIceCandidate.apply(this, args);
-}
-
 if (PREFS.get(Preferences.STREAM_TOUCH_CONTROLLER) === 'all') {
     TouchController.setup();
 }
+
+VibrationManager.initialSetup();
 
 const OrgRTCPeerConnection = window.RTCPeerConnection;
 window.RTCPeerConnection = function() {
@@ -5108,18 +7361,20 @@ window.RTCPeerConnection = function() {
     return peer;
 }
 
-
 patchRtcCodecs();
 interceptHttpRequests();
 patchVideoApi();
 
 // Setup UI
 addCss();
-updateVideoPlayerCss();
-window.addEventListener('resize', updateVideoPlayerCss);
-
-setupVideoSettingsBar();
-setupScreenshotButton();
-StreamStats.render();
+ENABLE_PRELOAD_BX_UI && setupBxUi();
 
 disablePwa();
+
+if (PREFS.get(Preferences.CONTROLLER_ENABLE_SHORTCUTS)) {
+    GamepadHandler.initialSetup();
+}
+
+Patcher.initialize();
+
+RemotePlay.detect();
